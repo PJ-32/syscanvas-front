@@ -1,0 +1,18 @@
+/* =========================================
+   ESTILOS DE LA FOTO EN LA BARRA SUPERIOR
+   ========================================= */
+
+.foto-topbar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    cursor: pointer;
+    /* Si var(--primary) no está definido en styles.css, cámbialo por tu color #4b23c2 */
+    border: 2px solid var(--primary, #4b23c2); 
+    transition: 0.2s ease;
+}
+
+.foto-topbar:hover {
+    transform: scale(1.05);
+}

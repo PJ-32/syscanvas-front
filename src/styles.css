@@ -1,1 +1,26 @@
 /* You can add global styles to this file, and also import other style files */
+/* src/styles.css */
+
+/* 1. Base */
+@import './styles/base/reset.css';
+@import './styles/base/typography.css';
+
+/* 2. Layout Estructural */
+@import './styles/layout/container.css';
+@import './styles/layout/grid.css';
+
+/* 3. Componentes Globales (El camino rápido) */
+@import './styles/components/buttons.css';
+@import './styles/components/forms.css';
+@import './styles/components/alerts.css';
+@import './styles/components/cards.css';
+@import './styles/components/modals.css';
+@import './styles/components/badges.css';
+@import './styles/components/progress.css';
+@import './styles/components/loading.css';
+@import './styles/components/divider.css';
+
+/* 4. Utilidades */
+@import './styles/utilities/display.css';
+@import './styles/utilities/spacing.css';
+@import './styles/utilities/animations.css';

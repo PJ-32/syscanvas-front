@@ -1,0 +1,86 @@
+<div class="login-body">
+    <video autoplay muted loop id="bg-video" playsinline preload="auto">
+        <source src="videos/login-bg.mp4" type="video/mp4">
+        Tu navegador no soporta videos en HTML5.
+    </video>
+    <div id="overlay"></div>
+
+    <div class="login-container">
+        <div class="login-card">
+            <div class="logo-section">
+                <span class="iconify logo" data-icon="noto:card-index-dividers"></span>
+                <h1 class="login-title">SYSCANVAS</h1>
+                <p class="subtitle">Sistema de Gestión de Proyectos</p>
+            </div>
+
+            <form (submit)="iniciarSesion($event)">
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label class="form-label">Código de Usuario</label>
+                    <input 
+                        type="text" 
+                        name="codPersona"
+                        [(ngModel)]="codPersona" 
+                        class="form-control" 
+                        placeholder="Ingrese su código de usuario"
+                        required
+                        autofocus
+                    >
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label class="form-label">Contraseña</label>
+                    <div class="input-wrapper" style="position: relative; display: flex; align-items: center;">
+                        <input 
+                            [type]="mostrarPassword ? 'text' : 'password'" 
+                            name="password"
+                            [(ngModel)]="password" 
+                            class="form-control" 
+                            placeholder="Ingrese su contraseña"
+                            required
+                            style="width: 100%;"
+                        >
+                        <button type="button" class="password-toggle" (click)="togglePassword()" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer;">
+                            <i class="fa-solid" [class.fa-eye]="!mostrarPassword" [class.fa-eye-slash]="mostrarPassword"></i>
+                        </button>
+                    </div>
+                </div>
+
+                @if (mensajeError) {
+                    <div class="alert alert-error" style="color: red; margin-bottom: 15px; font-size: 14px;">
+                        {{ mensajeError }}
+                    </div>
+                }
+                @if (mensajeExito) {
+                    <div class="alert alert-success" style="color: green; margin-bottom: 15px; font-size: 14px;">
+                        {{ mensajeExito }}
+                    </div>
+                }
+
+                <button type="submit" class="btn btn-primary btn-block" [disabled]="cargando" style="width: 100%; padding: 10px; background: #4b23c2; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    {{ cargando ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
+                </button>
+            </form>
+
+            <div class="divider" style="margin: 20px 0; text-align: center; color: #666; font-size: 14px;">
+                <span>¿Olvidaste tu contraseña?</span>
+            </div>
+
+            <button type="button" class="btn-link" (click)="abrirModalRecuperar()" style="width: 100%; background: none; border: none; color: #4b23c2; cursor: pointer;">
+                <span class="iconify key" data-icon="noto:locked-with-key"></span>
+                Restablecer Contraseña
+            </button>
+
+            <div class="footer-text" style="text-align: center; margin-top: 20px; font-size: 12px; color: #999;">
+                © 2026 SYSCANVAS - Todos los derechos reservados
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal" [class.show]="modalRecuperarAbierto" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;" [style.display]="modalRecuperarAbierto ? 'flex' : 'none'">
+    <div class="modal-content" style="background: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 400px; margin: auto; position: relative;">
+        <h2>Restablece tu Contraseña</h2>
+        <button (click)="cerrarModalRecuperar()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
+        <p style="color: #666; font-size: 14px;">Funcionalidad en construcción para Angular.</p>
+    </div>
+</div>
