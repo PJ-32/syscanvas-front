@@ -1,0 +1,177 @@
+<div class="container">
+    
+    <div class="mb-4">
+        <div class="text-gray" style="text-transform: capitalize;">{{ fechaActual }}</div>
+        <h1 class="text-xl font-bold mb-2">
+            Buenas tardes, {{ nombreUsuario }}
+            <span class="iconify greeting" data-icon="noto:waving-hand"></span>
+        </h1>
+        <p class="text-gray" style="font-style: italic;">¿Qué deseas hacer hoy?</p>
+    </div>
+
+    <div class="stats-row">
+        @if (rolUsuario === 'ROLE_JEFE') {
+            <div class="stat-card">
+                <div class="stat-value">{{ stat1 }}</div>
+                <div class="stat-label">Proyectos Activos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stat2 }}</div>
+                <div class="stat-label">Canvas Creados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stat3 }}</div>
+                <div class="stat-label">Total de Tareas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stat4 }}</div>
+                <div class="stat-label">Tareas Finalizadas</div>
+            </div>
+        } 
+        @else {
+            <div class="stat-card">
+                <div class="stat-value">{{ stat1 }}</div>
+                <div class="stat-label">Canvas Asignados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stat2 }}</div>
+                <div class="stat-label">Tareas Pendientes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stat3 }}</div>
+                <div class="stat-label">Tareas Completadas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ stat4 }}</div>
+                <div class="stat-label">Progreso General</div>
+            </div>
+        }
+    </div>
+
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <h1 class="mb-2">
+                    {{ rolUsuario === 'ROLE_JEFE' ? 'Panel de Control' : 'Panel de Trabajo' }}
+                </h1>
+                <p class="text-gray">
+                    @if (rolUsuario === 'ROLE_JEFE') {
+                        Gestiona tus proyectos y canvas. Controla el acceso de edición para tu equipo.
+                    } @else {
+                        Gestiona tus tareas asignadas. Solo puedes editar cuando el canvas esté desbloqueado.
+                    }
+                </p>
+            </div>
+            
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary" (click)="cargarDatosIniciales()">
+                    <span class="container-icon"><i class="fa-solid fa-refresh"></i></span>
+                    Actualizar
+                </button>
+                
+                @if (rolUsuario === 'ROLE_JEFE') {
+                    <button class="btn btn-primary" (click)="abrirModalCrearCanvas()">
+                        <span class="container-icon"><i class="fa-solid fa-plus"></i></span>
+                        Crear Canvas
+                    </button>
+                }
+            </div>
+        </div>
+
+        <div id="alert-container"></div>
+
+        <div class="grid grid-2 mb-4">
+            
+            @if (rolUsuario === 'ROLE_JEFE') {
+                <div class="form-group">
+                    <label class="form-label">Filtrar por Proyecto</label>
+                    <select class="form-control" [(ngModel)]="filtroProyecto" (change)="aplicarFiltros()">
+                        <option value="">Todos los proyectos</option>
+                        @for (proyecto of proyectosList; track proyecto.codPyto) {
+                            <option [value]="proyecto.codPyto">{{ proyecto.nomPyto }}</option>
+                        }
+                    </select>
+                </div>
+            } @else {
+                <div class="form-group">
+                    <label class="form-label">Filtrar por Canvas</label>
+                    <input type="text" class="form-control" placeholder="Buscar por nombre..." 
+                           [(ngModel)]="filtroNombreCanvas" (input)="aplicarFiltros()">
+                </div>
+            }
+
+            <div class="form-group">
+                <label class="form-label">Filtrar por Estado</label>
+                <select class="form-control" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
+                    <option value="">Todos los estados</option>
+                    <option value="true">Editable</option>
+                    <option value="false">Bloqueado</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    @if (cargando) {
+        <div class="loading">
+            <div class="spinner"></div>
+            <p class="mt-2">Cargando canvas...</p>
+        </div>
+    } @else if (canvasFiltrados.length === 0) {
+        <div class="empty-state">
+            <span class="iconify empty-state-icon" data-icon="noto:clipboard" style="font-size: 40px;"></span>
+            <div class="empty-state-text">No se encontraron canvas</div>
+        </div>
+    } @else {
+        <div class="grid grid-3" id="canvas-list">
+            
+            @for (canvas of canvasFiltrados; track canvas.codCanvas) {
+                
+                <div class="canvas-card p-4">
+                    <div class="canvas-card-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <div>
+                            <h2 class="canvas-card-title font-bold text-lg m-0">{{ canvas.nomCanvas }}</h2>
+                            <div class="canvas-card-meta text-xs text-gray-500 mt-1">
+                                📁 {{ obtenerNombreProyecto(canvas.codPyto) }}
+                            </div>
+                        </div>
+                        <span class="badge" [ngClass]="canvas.editable ? 'badge-success' : 'badge-error'">
+                            {{ canvas.editable ? '✏️ Editable' : '🔒 Bloqueado' }}
+                        </span>
+                    </div>
+                    
+                    <div class="canvas-card-body">
+                        <p class="text-sm text-gray mb-2 canvas-descripcion">
+                            {{ canvas.desCanvas || 'Sin descripción' }}
+                        </p>
+                        
+                        <div class="mb-2">
+                            <div class="text-sm text-gray mb-1">
+                                Progreso: <span class="progreso-texto">{{ canvas.porcentajeProgreso || 0 | number:'1.0-0' }}</span>%
+                            </div>
+                            <div class="progress-bar bg-gray-200 rounded h-2">
+                                <div class="progress-fill bg-blue-500 h-2 rounded" 
+                                     [style.width.%]="canvas.porcentajeProgreso || 0">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-xs text-gray mt-2" style="border-top: 1px solid #eee; padding-top: 10px;">
+                            <span class="iconify info" data-icon="mdi:clipboard-text"></span>
+                            <span class="total-tareas font-bold">{{ canvas.totalTareas || 0 }}</span> tareas 
+                            •
+                            <span class="iconify info" data-icon="mdi:check-all"></span>
+                            <span class="tareas-completadas font-bold">{{ canvas.tareasCompletadas || 0 }}</span> completadas
+                        </div>
+                    </div>
+                    
+                    <div class="canvas-card-footer mt-3 flex justify-end">
+                        <button class="btn btn-primary btn-sm btn-ver" (click)="verCanvas(canvas.codCanvas)">
+                            <i class="fa-solid fa-eye"></i> Ver
+                        </button>
+                    </div>
+                </div>
+
+            }
+        </div>
+    }
+</div>

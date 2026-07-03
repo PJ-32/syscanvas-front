@@ -29,4 +29,9 @@ export class AuthService {
   estaAutenticado(): boolean {
     return !!localStorage.getItem('token');
   }
+
+  recuperarPassword(payload: any): Observable<any> {
+    // Apunta a http://localhost:8080/api/auth/cambiar-password
+    return this.http.post(`${this.API_URL}/cambiar-password`, payload);
+  }
 }

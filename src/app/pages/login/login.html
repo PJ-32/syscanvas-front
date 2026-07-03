@@ -1,10 +1,14 @@
 <div class="login-body">
-    <video autoplay muted loop id="bg-video" playsinline preload="auto">
-        <source src="videos/login-bg.mp4" type="video/mp4">
+    <!-- El video de fondo. Recuerda que debe estar en public/videos/ o src/assets/videos/ -->
+    <video autoplay [muted]="true" defaultMuted loop id="bg-video" playsinline preload="auto">
+        <source src="/videos/login-bg.mp4" type="video/mp4">
         Tu navegador no soporta videos en HTML5.
     </video>
+    
+    <!-- Capa oscura -->
     <div id="overlay"></div>
-
+    
+    <!-- Contenedor Principal (Al frente) -->
     <div class="login-container">
         <div class="login-card">
             <div class="logo-section">
@@ -13,74 +17,135 @@
                 <p class="subtitle">Sistema de Gestión de Proyectos</p>
             </div>
 
-            <form (submit)="iniciarSesion($event)">
-                <div class="form-group" style="margin-bottom: 15px;">
-                    <label class="form-label">Código de Usuario</label>
+            <!-- Formulario Login conectado a Angular -->
+            <form (submit)="iniciarSesion($event)" novalidate>
+                <div class="form-group">
+                    <label for="codPersona" class="form-label">Código de Usuario</label>
                     <input 
                         type="text" 
+                        id="codPersona" 
                         name="codPersona"
-                        [(ngModel)]="codPersona" 
+                        [(ngModel)]="codPersona"
                         class="form-control" 
                         placeholder="Ingrese su código de usuario"
                         required
                         autofocus
+                        autocomplete="username"
                     >
                 </div>
 
-                <div class="form-group" style="margin-bottom: 20px;">
-                    <label class="form-label">Contraseña</label>
-                    <div class="input-wrapper" style="position: relative; display: flex; align-items: center;">
+                <div class="form-group">
+                    <label for="password" class="form-label">Contraseña</label>
+                    <div class="input-wrapper">
                         <input 
                             [type]="mostrarPassword ? 'text' : 'password'" 
+                            id="password" 
                             name="password"
-                            [(ngModel)]="password" 
+                            [(ngModel)]="password"
                             class="form-control" 
                             placeholder="Ingrese su contraseña"
                             required
-                            style="width: 100%;"
+                            autocomplete="current-password"
                         >
-                        <button type="button" class="password-toggle" (click)="togglePassword()" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer;">
+                        <button type="button" class="password-toggle" (click)="togglePassword()" aria-label="Mostrar contraseña">
                             <i class="fa-solid" [class.fa-eye]="!mostrarPassword" [class.fa-eye-slash]="mostrarPassword"></i>
                         </button>
                     </div>
                 </div>
 
+                <!-- Alertas Reactivas -->
                 @if (mensajeError) {
-                    <div class="alert alert-error" style="color: red; margin-bottom: 15px; font-size: 14px;">
-                        {{ mensajeError }}
-                    </div>
+                    <div class="alert alert-error show">{{ mensajeError }}</div>
                 }
                 @if (mensajeExito) {
-                    <div class="alert alert-success" style="color: green; margin-bottom: 15px; font-size: 14px;">
-                        {{ mensajeExito }}
-                    </div>
+                    <div class="alert alert-success show">{{ mensajeExito }}</div>
                 }
 
-                <button type="submit" class="btn btn-primary btn-block" [disabled]="cargando" style="width: 100%; padding: 10px; background: #4b23c2; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                <button type="submit" class="btn btn-primary btn-block" [disabled]="cargando">
                     {{ cargando ? 'Iniciando sesión...' : 'Iniciar Sesión' }}
                 </button>
             </form>
 
-            <div class="divider" style="margin: 20px 0; text-align: center; color: #666; font-size: 14px;">
+            <div class="divider">
                 <span>¿Olvidaste tu contraseña?</span>
             </div>
 
-            <button type="button" class="btn-link" (click)="abrirModalRecuperar()" style="width: 100%; background: none; border: none; color: #4b23c2; cursor: pointer;">
+            <button type="button" class="btn-link" (click)="abrirModalRecuperar()">
                 <span class="iconify key" data-icon="noto:locked-with-key"></span>
                 Restablecer Contraseña
             </button>
 
-            <div class="footer-text" style="text-align: center; margin-top: 20px; font-size: 12px; color: #999;">
+            <div class="footer-text">
                 © 2026 SYSCANVAS - Todos los derechos reservados
             </div>
         </div>
     </div>
 </div>
 
-<div class="modal" [class.show]="modalRecuperarAbierto" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;" [style.display]="modalRecuperarAbierto ? 'flex' : 'none'">
-    <div class="modal-content" style="background: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 400px; margin: auto; position: relative;">
-        <h2>Restablece tu Contraseña</h2>
-        <button (click)="cerrarModalRecuperar()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 20px; cursor: pointer;">&times;</button>
-        <p style="color: #666; font-size: 14px;">Funcionalidad en construcción para Angular.</p>
+<!-- Modal Recuperar Contraseña -->
+<div class="modal" [class.show]="modalRecuperarAbierto">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Restablece tu Contraseña</h2>
+            <button class="modal-close" (click)="cerrarModalRecuperar()">&times;</button>
+        </div>
+
+        <form (submit)="ejecutarRecuperacion($event)">
+            <p class="text-sm text-gray mb-3">
+                Para restablecer tu contraseña, necesitamos verificar tu identidad.
+            </p>
+
+            <div class="form-group">
+                <label class="form-label">Código de Usuario</label>
+                <input type="text" class="form-control" placeholder="Ingrese su código" [(ngModel)]="codPersonaRecuperar" name="codPersonaRecuperar" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">DNI *</label>
+                <input type="text" class="form-control" placeholder="Ej: 12345678" maxlength="8" [(ngModel)]="dniRecuperar" name="dniRecuperar" required>
+                <small class="text-xs text-gray">Ingrese su documento de identidad (8 dígitos)</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Fecha de Nacimiento *</label>
+                <input type="date" class="form-control" [(ngModel)]="fechaNacimientoRecuperar" name="fechaNacimientoRecuperar" required>
+                <small class="text-xs text-gray">Debe coincidir con la fecha registrada en el sistema</small>
+            </div>
+
+            <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
+            
+            <div class="form-group">
+                <label class="form-label">Nueva Contraseña</label>
+                <div class="input-wrapper">
+                    <input [type]="mostrarPasswordNueva ? 'text' : 'password'" class="form-control" placeholder="Ingrese su nueva contraseña" [(ngModel)]="passwordNueva" name="passwordNueva" required minlength="8">
+                    <button type="button" class="password-toggle" (click)="togglePasswordModal('nueva')">
+                        <i class="fa-solid" [class.fa-eye]="!mostrarPasswordNueva" [class.fa-eye-slash]="mostrarPasswordNueva"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Confirmar Nueva Contraseña</label>
+                <div class="input-wrapper">
+                    <input [type]="mostrarPasswordConfirmar ? 'text' : 'password'" class="form-control" placeholder="Repita la contraseña" [(ngModel)]="passwordConfirmar" name="passwordConfirmar" required>
+                    <button type="button" class="password-toggle" (click)="togglePasswordModal('confirmar')">
+                        <i class="fa-solid" [class.fa-eye]="!mostrarPasswordConfirmar" [class.fa-eye-slash]="mostrarPasswordConfirmar"></i>
+                    </button>
+                </div>
+            </div>
+
+            @if (errorRecuperacion) {
+                <div class="alert alert-error show">{{ errorRecuperacion }}</div>
+            }
+            @if (exitoRecuperacion) {
+                <div class="alert alert-success show">{{ exitoRecuperacion }}</div>
+            }
+
+            <button type="submit" class="btn btn-primary" [disabled]="cargandoRecuperacion">
+                <span class="iconify key" data-icon="noto:locked-with-key"></span>
+                {{ cargandoRecuperacion ? 'Verificando...' : 'Cambiar Contraseña' }}
+            </button>
+            <button type="button" class="btn btn-secondary" (click)="cerrarModalRecuperar()" style="margin-top: 10px;">Cancelar</button>
+        </form>
     </div>
 </div>
