@@ -54,33 +54,54 @@ body.has-sidebar {
     gap: 2px;
 }
 
-.sidebar.collapsed .sidebar-toggle {
-    position: relative;
-    right: 0px;
-    top: 0px;
-    margin-left: 10px;
-    transform: scale(1);
-}
+
 
 .sidebar.collapsed .sidebar-logo,
 .sidebar.collapsed .sidebar-title {
     /* opacity: 0; */
     display: none;
 }
+.sidebar-header {
+    padding: 20px 15px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start; /* Alinea todo a la izquierda */
+    gap: 15px; /* Espacio exacto entre hamburguesa, carpeta y texto */
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    width: 100%;
+    height: 70px; /* Altura fija para alinear con tu Topbar */
+    box-sizing: border-box;
+}
 
-.sidebar-toggle {
-    width: 22px;
-    height: 22px;
-    background: var(--primary);
-    border: 3px solid white;
-    border-radius: 50%;
+.hamburger-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-size: 12px;
-    color: white;
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+}
+
+.hamburger-btn:hover {
+    transform: scale(1.1);
+}
+
+/* ==========================================
+   COMPORTAMIENTO AL COLAPSAR (SOLO EN PC)
+   ========================================== */
+.sidebar.collapsed .sidebar-header {
+    justify-content: center; /* Centra la hamburguesa de forma perfecta */
+    padding: 20px 0;
+}
+
+.sidebar.collapsed .sidebar-logo,
+.sidebar.collapsed .sidebar-title {
+    display: none; /* Desaparece la carpeta y el texto al colapsar */
 }
 
 .sidebar-toggle:hover {
@@ -169,18 +190,26 @@ body.has-sidebar {
     margin-left: 70px;
 }
 
-/* Responsive Sidebar */
-@media (max-width: 740px) {
+@media (max-width: 768px) {
     .sidebar {
-        width: 70px;
+        transform: translateX(-100%); /* Lo escondemos fuera de la pantalla */
+        width: 260px !important; /* Siempre ancho completo al abrirse */
+        box-shadow: 4px 0 15px rgba(0,0,0,0.3);
     }
     
-    .sidebar-title,
-    .menu-text {
+    /* Forzamos a que los textos e íconos se vean cuando está abierto en móvil */
+    .sidebar-title, .menu-text {
+        display: inline-block !important;
+        opacity: 1 !important;
+    }
+    
+    /* Ocultamos el botón de colapsar circular nativo */
+    .sidebar-toggle {
         display: none;
     }
+}
 
-    .main-content {
-        margin-left: 70px;
-    }
+/* Magia de Angular: Cuando el body tiene la clase, el menú entra deslizado */
+:host-context(body.sidebar-mobile-open) .sidebar {
+    transform: translateX(0);
 }

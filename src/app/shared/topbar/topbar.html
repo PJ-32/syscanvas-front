@@ -1,11 +1,39 @@
 <header>
     <div class="header-content">
         <div class="header-content-logo">
-            <span class="iconify sidebar-logo" data-icon="noto:card-index-dividers"></span>
-            <span class="header-content-title">SYSCANVAS</span>
-        </div>
-        <div class="user-info">
+        <button class="mobile-menu-btn" (click)="abrirMenuMovil()">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        
+        <span class="iconify sidebar-logo" data-icon="noto:card-index-dividers"></span>
+        <span class="header-content-title">SYSCANVAS</span>
+    </div>
+        
+        <div class="user-info" (click)="toggleMenu($event)">
             <img class="foto-topbar" [src]="fotoUrlTopbar" alt="Foto perfil mini">
+            <i class="fa-solid" [class.fa-chevron-down]="!menuAbierto" [class.fa-chevron-up]="menuAbierto"></i>
         </div>
+        
+        @if (menuAbierto) {
+            <div class="profile-menu">
+                <div class="profile-menu-header">
+                    <img class="profile-picture" [src]="fotoUrlTopbar" alt="Foto perfil">
+                    <div class="profile-info">
+                        <span class="profile-name">{{ nombreUsuario }}</span>
+                        <a class="profile-title" routerLink="/perfil" (click)="menuAbierto = false">Mi Perfil</a>
+                    </div>
+                </div>
+                <div class="profile-divider"></div>
+                
+                <div class="profile-option" routerLink="/perfil" (click)="menuAbierto = false">
+                    <i class="fa-solid fa-lock"></i>     
+                    Cambiar contraseña
+                </div>
+                <div class="profile-option" (click)="logout()">
+                    <i class="fa-solid fa-right-from-bracket"></i>     
+                    Cerrar sesión
+                </div>
+            </div>
+        }
     </div>
 </header>

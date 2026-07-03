@@ -1,11 +1,12 @@
 <aside class="sidebar" [class.collapsed]="estaColapsado">
     <div class="sidebar-header">
-        <span class="iconify sidebar-logo" data-icon="noto:card-index-dividers"></span>
-        <div class="sidebar-title">SYSCANVAS</div>
-        
-        <button class="sidebar-toggle" (click)="toggleSidebar()">
-            <i class="fa-solid" [class.fa-chevron-left]="!estaColapsado" [class.fa-chevron-right]="estaColapsado"></i>
+        <button class="hamburger-btn" (click)="toggleSidebar()">
+            <i class="fa-solid fa-bars"></i>
         </button>
+
+        <span class="iconify sidebar-logo" data-icon="noto:card-index-dividers"></span>
+        
+        <div class="sidebar-title">SYSCANVAS</div>
     </div>
 
     <nav class="sidebar-menu">

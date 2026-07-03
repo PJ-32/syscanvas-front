@@ -1,18 +1,188 @@
-/* =========================================
-   ESTILOS DE LA FOTO EN LA BARRA SUPERIOR
-   ========================================= */
-
-.foto-topbar {
-    width: 42px;
-    height: 42px;
-    border-radius: 50%;
-    object-fit: cover;
-    cursor: pointer;
-    /* Si var(--primary) no está definido en styles.css, cámbialo por tu color #4b23c2 */
-    border: 2px solid var(--primary, #4b23c2); 
-    transition: 0.2s ease;
+/* === HEADER (TOPBAR) === */
+header {
+    background: var(--surface);
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
-.foto-topbar:hover {
-    transform: scale(1.05);
+.header-content {
+    width: 100%;
+    margin: 0 auto;
+    flex-wrap: wrap;
+    padding: var(--spacing-md) var(--spacing-lg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* 1. Oculto por defecto (cuando el Sidebar está expandido) */
+.header-content-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary);
+    opacity: 0;
+    pointer-events: none; /* Para que no interfiera con clics si pasas el mouse por ahí */
+    transition: opacity 0.3s ease; /* Transición suave como tu Sidebar */
+}
+
+.header-content .logo {
+    font-family: 'Poppins', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 2. Magia de Angular: Si el body tiene 'sidebar-collapsed', mostramos el logo */
+:host-context(body.sidebar-collapsed) .header-content-logo {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    position: relative;
+    color: var(--primary-dark);
+}
+
+.foto-topbar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--primary-light);
+}
+
+/* === MENÚ DESPLEGABLE DE PERFIL === */
+.profile-menu {
+    position: absolute;
+    top: 65px;
+    right: 25px;
+    background: white;
+    width: 300px;
+    padding: 14px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+    animation: fadeIn 0.2s ease-out;
+    z-index: 999;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.profile-menu-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding-bottom: 10px;
+}
+
+.profile-picture {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 1px solid var(--primary);
+    background-color: var(--overlay-primary-light);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.profile-name {
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--text-primary);
+}
+
+.profile-title {
+    font-size: 15px;
+    color: var(--primary-dark);
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.profile-title:hover {
+    text-decoration: underline;
+}
+
+.profile-divider {
+    height: 1px;
+    background: var(--border);
+    margin: var(--spacing-sm) 0;
+}
+
+.profile-option {
+    display: flex;
+    align-items: center;
+    padding: 12px 8px;
+    gap: 15px;
+    cursor: pointer;
+    font-size: 15px;
+    border-radius: 8px;
+    color: var(--text-primary);
+    transition: background-color 0.2s;
+}
+
+.profile-option i {
+    font-size: 18px;
+    width: 22px;
+    text-align: left;
+    color: var(--primary-dark);
+}
+
+.profile-option:hover {
+    background-color: var(--overlay-primary-dark);
+}
+
+/* Botón Hamburguesa (Oculto por defecto) */
+.mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--primary);
+    cursor: pointer;
+    margin-right: 10px;
+    padding: 0;
+}
+
+/* Reglas para Celulares */
+@media (max-width: 768px) {
+    /* 3. En celulares el Sidebar está oculto, así que el logo del Topbar SIEMPRE debe verse */
+    .header-content-logo {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+
+    .mobile-menu-btn {
+        display: block; 
+    }
+    
+    /* Ocultamos solo la palabra SYSCANVAS en móvil para no aplastar la foto de perfil */
+    .header-content-title {
+        display: none; 
+    }
+    
+    .header-content {
+        padding: 10px 15px; 
+    }
 }
