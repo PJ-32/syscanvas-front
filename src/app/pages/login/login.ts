@@ -52,6 +52,8 @@ export class Login {
         this.mensajeExito = `¡Bienvenido ${res.nombreCompleto || ''}!`;
         this.cargando = false;
 
+        this.cdr.detectChanges();
+
         // Redirigir según el rol recibido desde Spring Boot
         // Redirigir al inicio unificado
         setTimeout(() => {
@@ -62,6 +64,7 @@ export class Login {
         this.cargando = false;
         // Atrapa los errores 401, 403 o 404 del backend
         this.mensajeError = err.error?.mensaje || 'Credenciales inválidas o error de conexión.';
+        this.cdr.detectChanges();
       }
     });
   }

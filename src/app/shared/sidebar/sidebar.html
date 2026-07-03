@@ -1,34 +1,44 @@
-<aside class="sidebar" id="sidebar">
+<aside class="sidebar" [class.collapsed]="estaColapsado">
     <div class="sidebar-header">
         <span class="iconify sidebar-logo" data-icon="noto:card-index-dividers"></span>
         <div class="sidebar-title">SYSCANVAS</div>
+        
         <button class="sidebar-toggle" (click)="toggleSidebar()">
-            <i class="fa-solid fa-chevron-left"></i>
+            <i class="fa-solid" [class.fa-chevron-left]="!estaColapsado" [class.fa-chevron-right]="estaColapsado"></i>
         </button>
     </div>
 
     <nav class="sidebar-menu">
-        @if (rolUsuario === 'JEFE') {
-            <a routerLink="/inicio-jefe" class="menu-item">
-                <span class="menu-icon"><i class="fa-solid fa-house"></i></span>
-                <span class="menu-text">Inicio</span>
+        <a routerLink="/inicio" routerLinkActive="active" class="menu-item">
+            <span class="menu-icon"><i class="fa-solid fa-house"></i></span>
+            <span class="menu-text">Inicio</span>
+        </a>
+
+        @if (rolUsuario === 'ROLE_JEFE') {
+            <a (click)="abrirModalCrearCanvas()" class="menu-item">
+                <span class="menu-icon"><i class="fa-solid fa-plus"></i></span>
+                <span class="menu-text">Crear Canvas</span>
             </a>
-            <a routerLink="/proyectos-jefe" class="menu-item">
+
+            <a routerLink="/proyectos-jefe" routerLinkActive="active" class="menu-item">
                 <span class="menu-icon"><i class="fa-solid fa-chart-column"></i></span>
                 <span class="menu-text">Proyectos</span>
             </a>
-            <a routerLink="/reportes" class="menu-item">
+
+            <a routerLink="/reportes" routerLinkActive="active" class="menu-item">
                 <span class="menu-icon"><i class="fa-solid fa-clipboard-list"></i></span>
                 <span class="menu-text">Reportes</span>
             </a>
-        } @else {
-            <a routerLink="/inicio-analista" class="menu-item">
-                <span class="menu-icon"><i class="fa-solid fa-house"></i></span>
-                <span class="menu-text">Inicio</span>
-            </a>
-            }
+        }
 
-        <a routerLink="/perfil" class="menu-item">
+        @if (rolUsuario === 'ROLE_ANALISTA') {
+            <a routerLink="/mi-progreso" routerLinkActive="active" class="menu-item">
+                <span class="menu-icon"><i class="fa-solid fa-chart-line"></i></span>
+                <span class="menu-text">Mi Progreso</span>
+            </a>
+        }
+        
+        <a routerLink="/perfil" routerLinkActive="active" class="menu-item">
             <span class="menu-icon"><i class="fa-solid fa-user"></i></span>
             <span class="menu-text">Mi Perfil</span>
         </a>

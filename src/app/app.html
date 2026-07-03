@@ -5,12 +5,13 @@
 } 
 @else {
     
-    <app-sidebar></app-sidebar>
+    <div class="app-layout">
+        <app-sidebar></app-sidebar>
 
-    <div class="main-content">
-        <app-topbar></app-topbar>
-        
-        <router-outlet></router-outlet>
+        <div class="main-content">
+            <app-topbar></app-topbar>
+            <router-outlet></router-outlet>
+        </div>
     </div>
 
 }

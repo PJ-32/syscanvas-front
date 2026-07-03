@@ -8,6 +8,7 @@
 /* 2. Layout Estructural */
 @import './styles/layout/container.css';
 @import './styles/layout/grid.css';
+@import './styles/layout/layout.css';
 
 /* 3. Componentes Globales (El camino rápido) */
 @import './styles/components/buttons.css';

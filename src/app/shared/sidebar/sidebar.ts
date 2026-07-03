@@ -1,28 +1,58 @@
-import { Component } from '@angular/core';
-import { RouterLink } from '@angular/router'; // Necesario para los enlaces del menú
+import { Component, OnInit } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router'; // Añadimos RouterLinkActive
+import { AuthService } from '../../services/auth';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-sidebar',
   standalone: true,
-  imports: [RouterLink], // Lo inyectamos aquí
+  imports: [RouterLink, RouterLinkActive], // Magia de rutas
   templateUrl: './sidebar.html',
-  styleUrls: ['./sidebar.css']
+  styleUrls: ['./sidebar.css'] // (Asegúrate de haber pegado tu sidebar.css en este archivo)
 })
-export class Sidebar {
+export class SidebarComponent implements OnInit {
   
-  // 1. Variable para controlar qué botones se muestran (@if)
-  rolUsuario: string = 'JEFE';
+  rolUsuario: string = '';
+  estaColapsado: boolean = false;
 
-  // 2. Función para achicar/agrandar el menú lateral
-  toggleSidebar() {
-    // La forma más fácil en Angular de hacer esto rápido es añadir una clase al body
-    // y en tu CSS global tener una regla que achique el sidebar.
-    document.body.classList.toggle('sidebar-collapsed');
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
+
+  ngOnInit() {
+    this.rolUsuario = localStorage.getItem('rol') || '';
+    
+    // Restaurar estado del sidebar
+    const guardado = localStorage.getItem('sidebarCollapsed');
+    if (guardado === 'true') {
+      this.estaColapsado = true;
+      this.aplicarClaseBody();
+    }
   }
 
-  // 3. Función para cerrar sesión
+  toggleSidebar() {
+    this.estaColapsado = !this.estaColapsado;
+    localStorage.setItem('sidebarCollapsed', String(this.estaColapsado));
+    this.aplicarClaseBody();
+  }
+
+  abrirModalCrearCanvas() {
+    // Más adelante conectaremos esto con el modal real
+    console.log('Botón de crear canvas presionado desde el menú');
+  }
+
+  // Angular nos permite inyectar clases al body de forma segura
+  private aplicarClaseBody() {
+    if (this.estaColapsado) {
+      document.body.classList.add('sidebar-collapsed');
+    } else {
+      document.body.classList.remove('sidebar-collapsed');
+    }
+  }
+
   logout() {
-    // Aquí a futuro borrarás el JWT del localStorage
-    alert('Cerrando sesión...');
+    this.authService.cerrarSesion();
+    this.router.navigate(['/login']);
   }
 }
