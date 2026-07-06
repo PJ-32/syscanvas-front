@@ -1,4 +1,4 @@
-import { Component, OnInit, HostListener, ElementRef } from '@angular/core';
+import { Component, OnInit, HostListener, ElementRef, ChangeDetectorRef } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth';
 
@@ -11,19 +11,38 @@ import { AuthService } from '../../services/auth';
 })
 export class Topbar implements OnInit {
   
-  fotoUrlTopbar: string = '/default-foto.png';
+  fotoUrlTopbar: string = 'uploads/default-foto.png';
   nombreUsuario: string = 'Cargando...';
   menuAbierto: boolean = false;
 
   constructor(
     private authService: AuthService,
     private router: Router,
-    private eRef: ElementRef // Necesario para saber dónde hacemos clic
+    private eRef: ElementRef,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
     this.nombreUsuario = localStorage.getItem('nombreCompleto') || 'Usuario';
-    // Más adelante conectaremos esto con la API de foto que tienes en auth.js
+    this.cargarFotoPerfil();
+  }
+
+  cargarFotoPerfil() {
+    const codPersona = localStorage.getItem('codPersona');
+    if (!codPersona) return;
+
+    // Hacemos la petición a tu backend en Spring Boot
+    this.authService.obtenerFotoPerfil(codPersona).subscribe({
+      next: (data) => {
+        if (data && data.fotoBase64 && data.fotoBase64.trim() !== "") {
+          this.fotoUrlTopbar = `data:image/png;base64,${data.fotoBase64}`;
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        console.warn("No se pudo cargar la foto del usuario, usando imagen por defecto.");
+      }
+    });
   }
 
   // Abre y cierra el menú

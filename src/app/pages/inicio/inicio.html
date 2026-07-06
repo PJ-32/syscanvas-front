@@ -1,5 +1,6 @@
 <div class="container">
     
+    <!-- SALUDO Y FECHA -->
     <div class="mb-4">
         <div class="text-gray" style="text-transform: capitalize;">{{ fechaActual }}</div>
         <h1 class="text-xl font-bold mb-2">
@@ -9,6 +10,7 @@
         <p class="text-gray" style="font-style: italic;">¿Qué deseas hacer hoy?</p>
     </div>
 
+    <!-- ESTADÍSTICAS -->
     <div class="stats-row">
         @if (rolUsuario === 'ROLE_JEFE') {
             <div class="stat-card">
@@ -48,6 +50,7 @@
         }
     </div>
 
+    <!-- PANEL DE CONTROL / TRABAJO -->
     <div class="card">
         <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
@@ -80,8 +83,8 @@
 
         <div id="alert-container"></div>
 
+        <!-- FILTROS -->
         <div class="grid grid-2 mb-4">
-            
             @if (rolUsuario === 'ROLE_JEFE') {
                 <div class="form-group">
                     <label class="form-label">Filtrar por Proyecto</label>
@@ -111,6 +114,7 @@
         </div>
     </div>
 
+    <!-- LISTA DE CANVAS -->
     @if (cargando) {
         <div class="loading">
             <div class="spinner"></div>
@@ -174,4 +178,125 @@
             }
         </div>
     }
+</div>
+
+<!-- ==========================================
+     MODAL CREAR CANVAS (Oculto por defecto)
+     ========================================== -->
+<div class="modal" [class.show]="modalCrearAbierto">
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header">
+            <h2 class="modal-title">Crear Nuevo Canvas</h2>
+            <button class="modal-close" (click)="cerrarModalCrearCanvas()">&times;</button>
+        </div>
+
+        @if (!modoCreacion) {
+            <!-- PASO 1: Selección de Modo -->
+            <p class="text-gray mb-4">Seleccione una opción para comenzar</p>
+            <div class="grid grid-2" style="margin-bottom: 24px;">
+                <div class="option-card" (click)="seleccionarOpcion('plantilla')" style="cursor:pointer; border: 1px solid var(--border); padding: 15px; border-radius: 8px;">
+                    <span class="iconify" data-icon="noto:bookmark-tabs" style="font-size: 32px; margin-bottom: 10px;"></span>
+                    <div class="font-bold">Usar una plantilla</div>
+                    <div class="text-sm text-gray mt-1">Estructura predefinida (Scrum, Kanban, etc).</div>
+                </div>
+
+                <div class="option-card" (click)="seleccionarOpcion('blanco')" style="cursor:pointer; border: 1px solid var(--border); padding: 15px; border-radius: 8px;">
+                    <span class="iconify" data-icon="noto:page-facing-up" style="font-size: 32px; margin-bottom: 10px;"></span>
+                    <div class="font-bold">Proyecto en blanco</div>
+                    <div class="text-sm text-gray mt-1">Crea tus propias etapas desde cero.</div>
+                </div>
+            </div>
+        } @else {
+            <!-- PASO 2: Formulario -->
+            <form (ngSubmit)="crearCanvas($event)">
+                <div class="form-group">
+                    <label class="form-label">Nombre del Canvas *</label>
+                    <input type="text" class="form-control" placeholder="Ej: Canvas Desarrollo App Móvil" 
+                           [(ngModel)]="nuevoCanvas.nomCanvas" name="nomCanvas" required maxlength="200">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Descripción</label>
+                    <textarea class="form-control" rows="3" placeholder="Descripción opcional" 
+                              [(ngModel)]="nuevoCanvas.desCanvas" name="desCanvas" maxlength="1000"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Vincular a un proyecto</label>
+                    <div style="display: flex; gap: 15px;">
+                        <label>
+                            <input type="radio" name="vincular" value="SI" 
+                                   [(ngModel)]="nuevoCanvas.vincularProyecto" (change)="cambioVincularProyecto()"> Sí
+                        </label>
+                        <label>
+                            <input type="radio" name="vincular" value="NO" 
+                                   [(ngModel)]="nuevoCanvas.vincularProyecto" (change)="cambioVincularProyecto()"> No
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Proyecto</label>
+                    <select class="form-control" [(ngModel)]="nuevoCanvas.codPyto" name="codPyto" [disabled]="nuevoCanvas.vincularProyecto === 'NO'" [required]="nuevoCanvas.vincularProyecto === 'SI'">
+                        <option value="">Seleccione un proyecto</option>
+                        @for (pyto of proyectosList; track pyto.codPyto) {
+                            <option [value]="pyto.codPyto">{{ pyto.nomPyto }}</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Asignar Analista</label>
+                    <select class="form-control" [(ngModel)]="nuevoCanvas.codPersona" name="codPersona">
+                        <option value="">Sin asignar</option>
+                        @for (emp of empleadosList; track emp.codPersona) {
+                            <option [value]="emp.codPersona">{{ emp.nombre }} {{ emp.apellido }}</option>
+                        }
+                    </select>
+                </div>
+
+                @if (modoCreacion === 'plantilla') {
+                    <div class="form-group">
+                        <label class="form-label">Tipo de Canvas (Plantilla) *</label>
+                        <select class="form-control" [(ngModel)]="nuevoCanvas.tipCanvas" name="tipCanvas" required>
+                            <option value="">Seleccione un tipo</option>
+                            @for (tipo of tiposCanvasList; track tipo.tipCanvas) {
+                                <option [value]="tipo.tipCanvas">{{ tipo.desTipCanvas }}</option>
+                            }
+                        </select>
+                    </div>
+                } @else {
+                    <div class="form-group">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <label class="form-label m-0">Etapas Personalizadas</label>
+                            <button type="button" class="btn btn-secondary btn-sm" (click)="agregarEtapa()">
+                                <i class="fa-solid fa-plus"></i> Agregar Etapa
+                            </button>
+                        </div>
+                        
+                        <div style="display: flex; flex-direction: column; gap: 10px;">
+                            @for (etapa of etapasPersonalizadas; track $index) {
+                                <div style="display: flex; gap: 10px;">
+                                    <input type="text" class="form-control" placeholder="Nombre de la etapa {{ $index + 1 }}" 
+                                           [(ngModel)]="etapa.nomEtapa" name="etapa_{{$index}}" required>
+                                    <button type="button" class="btn btn-danger btn-sm" (click)="eliminarEtapa($index)">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" (click)="volverPaso1()">
+                        <i class="fa-solid fa-arrow-left"></i> Volver
+                    </button>
+                    <button type="submit" class="btn btn-primary" [disabled]="guardandoCanvas">
+                        <i class="fa-solid fa-check"></i> {{ guardandoCanvas ? 'Creando...' : 'Crear Canvas' }}
+                    </button>
+                </div>
+            </form>
+        }
+    </div>
 </div>
