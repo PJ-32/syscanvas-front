@@ -181,3 +181,34 @@
     display: flex;
     gap: 10px;
 }
+
+/* ==========================================
+   RESPONSIVE: CABECERA DE INICIO (MÓVILES)
+   ========================================== */
+
+/* Agregamos una clase auxiliar al contenedor de los botones de Inicio */
+.responsive-header-actions {
+    display: flex; 
+    gap: 10px;
+}
+
+@media (max-width: 768px) {
+    /* 1. Apilamos el título y los botones */
+    .card-header {
+        flex-direction: column !important;
+        gap: 16px;
+    }
+    
+    /* 2. Invertimos el orden de los botones ("Crear Canvas" arriba) */
+    .responsive-header-actions {
+        flex-direction: column-reverse; 
+        width: 100%;
+    }
+    
+    /* 3. Estiramos los botones de Inicio en móviles */
+    .responsive-header-actions .btn {
+        width: 100%;
+        justify-content: center;
+        padding: 12px;
+    }
+}

@@ -226,7 +226,7 @@ export class Inicio implements OnInit {
     }
   }
 
-  crearCanvas(event: Event) {
+ crearCanvas(event: Event) {
     event.preventDefault();
 
     if (!this.nuevoCanvas.nomCanvas) {
@@ -239,6 +239,7 @@ export class Inicio implements OnInit {
       return;
     }
 
+    // 1. Estructura base del Canvas
     const payload: any = {
       nomCanvas: this.nuevoCanvas.nomCanvas,
       desCanvas: this.nuevoCanvas.desCanvas,
@@ -254,14 +255,21 @@ export class Inicio implements OnInit {
         return;
       }
       payload.tipoCanvas = { tipCanvas: this.nuevoCanvas.tipCanvas, desTipCanvas: "Plantilla", vigente: 1 };
+      
+      // Enviamos el array vacío, el Factory de Java (tu SC_EtapaPlantillaFactory) se encargará de llenarlo
+      payload.etapasPersonalizadas = []; 
+      
     } else {
-      const etapasValidas = this.etapasPersonalizadas.filter(e => e.nomEtapa.trim() !== '');
+      const etapasValidas = this.etapasPersonalizadas.filter((e: any) => e.nomEtapa.trim() !== '');
       if (etapasValidas.length === 0) {
         alert("Agregue al menos una etapa válida");
         return;
       }
+      
       payload.tipoCanvas = { tipCanvas: 'F', desTipCanvas: "Libre", vigente: 1 };
-      payload.etapasPersonalizadas = etapasValidas.map((e, i) => ({
+      
+      // 2. ¡DEVOLVEMOS LAS ETAPAS AL PAYLOAD! Spring Boot las guardará en cascada
+      payload.etapasPersonalizadas = etapasValidas.map((e: any, i: number) => ({
         nomEtapa: e.nomEtapa.trim(),
         desEtapa: '',
         numEtapa: i + 1,
@@ -271,21 +279,19 @@ export class Inicio implements OnInit {
 
     this.guardandoCanvas = true;
 
+    // 3. Un solo envío, una sola transacción en base de datos
     this.http.post<any>(`${this.API_URL}/sc/canvas`, payload).subscribe({
       next: (res) => {
         alert("Canvas creado correctamente");
         this.guardandoCanvas = false;
         this.cerrarModalCrearCanvas();
         
-        if (payload.etapasPersonalizadas && res.data?.id) {
-          this.guardarEtapasPersonalizadas(res.data.id, payload.etapasPersonalizadas);
-        } else {
-          this.cargarDatosIniciales();
-        }
+        // Recargamos el panel inicial directamente
+        this.cargarDatosIniciales(); 
       },
       error: (err) => {
-        console.error(err);
-        alert("Error al crear el canvas");
+        console.error("Error del servidor:", err);
+        alert("Error al crear el canvas. Revisa la consola para más detalles.");
         this.guardandoCanvas = false;
       }
     });

@@ -59,7 +59,8 @@ body.has-sidebar {
 .sidebar.collapsed .sidebar-logo,
 .sidebar.collapsed .sidebar-title {
     /* opacity: 0; */
-    display: none;
+    opacity: 0;        /* Usa opacidad en lugar de display:none */
+    pointer-events: none;
 }
 .sidebar-header {
     padding: 20px 15px;

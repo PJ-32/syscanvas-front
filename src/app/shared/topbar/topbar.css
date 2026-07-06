@@ -1,4 +1,4 @@
-/* === HEADER (TOPBAR) === */
+/* === HEADER (TOPBAR) CONTENEDOR PRINCIPAL === */
 header {
     background: var(--surface);
     box-shadow: var(--shadow);
@@ -10,50 +10,65 @@ header {
 .header-content {
     width: 100%;
     margin: 0 auto;
-    flex-wrap: wrap;
     padding: var(--spacing-md) var(--spacing-lg);
     display: flex;
-    justify-content: space-between;
+    justify-content: space-between; /* Empuja elementos a los extremos */
     align-items: center;
 }
 
-/* 1. Oculto por defecto (cuando el Sidebar está expandido) */
+/* === GRUPO IZQUIERDO (Logo y Hamburguesa) === */
 .header-content-logo {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     font-size: 24px;
     font-weight: 700;
     color: var(--primary);
+    
+    /* Oculto por defecto en PC cuando el sidebar morado está expandido */
     opacity: 0;
-    pointer-events: none; /* Para que no interfiera con clics si pasas el mouse por ahí */
-    transition: opacity 0.3s ease; /* Transición suave como tu Sidebar */
+    pointer-events: none;
+    transition: opacity 0.3s ease;
 }
 
-.header-content .logo {
+.header-content-title {
     font-family: 'Poppins', sans-serif;
-    font-size: 26px;
+    font-size: 22px;
     font-weight: 700;
     letter-spacing: 0.6px;
     color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: 8px;
 }
 
-/* 2. Magia de Angular: Si el body tiene 'sidebar-collapsed', mostramos el logo */
+.sidebar-logo {
+    font-size: 28px;
+}
+
+/* Magia: Si el sidebar se colapsa en PC, el logo del topbar aparece */
 :host-context(body.sidebar-collapsed) .header-content-logo {
     opacity: 1;
+    visibility: visible;
+    width: auto; /* Se expande automáticamente al ancho del contenido */
     pointer-events: auto;
 }
 
+/* Botón Hamburguesa (Oculto por defecto en PC) */
+.mobile-menu-btn {
+    display: none;
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: var(--primary);
+    cursor: pointer;
+    padding: 0;
+}
+
+/* === GRUPO DERECHO (Perfil de Usuario) === */
 .user-info {
     display: flex;
     align-items: center;
     gap: 8px;
     cursor: pointer;
-    position: relative;
-    color: var(--primary-dark);
+    margin-left: auto; /* Empuja la foto al extremo derecho */
 }
 
 .foto-topbar {
@@ -153,36 +168,44 @@ header {
     background-color: var(--overlay-primary-dark);
 }
 
-/* Botón Hamburguesa (Oculto por defecto) */
-.mobile-menu-btn {
-    display: none;
-    background: none;
-    border: none;
-    font-size: 24px;
-    color: var(--primary);
-    cursor: pointer;
-    margin-right: 10px;
-    padding: 0;
-}
-
-/* Reglas para Celulares */
+/* ==========================================
+   REGLAS EXCLUSIVAS PARA CELULARES
+   ========================================== */
 @media (max-width: 768px) {
-    /* 3. En celulares el Sidebar está oculto, así que el logo del Topbar SIEMPRE debe verse */
-    .header-content-logo {
-        opacity: 1 !important;
-        pointer-events: auto !important;
+    .header-content {
+        padding: 12px 16px;
     }
 
+    /* En celulares el Sidebar morado está oculto, el bloque del topbar SIEMPRE debe verse */
+    .header-content-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary);
+    
+    /* ESTADO NORMAL: Oculto y sin ocupar espacio */
+    opacity: 0;
+    visibility: hidden;
+    width: 0;
+    overflow: hidden;
+    transition: all 0.3s ease; /* Transición suave de apertura */
+}
+
+    /* Mostramos el botón de hamburguesa */
     .mobile-menu-btn {
         display: block; 
     }
     
-    /* Ocultamos solo la palabra SYSCANVAS en móvil para no aplastar la foto de perfil */
+    /* Ocultamos la palabra SYSCANVAS para que no choque con la foto de perfil */
     .header-content-title {
         display: none; 
     }
-    
-    .header-content {
-        padding: 10px 15px; 
+
+    /* Ajustamos la posición del menú desplegable para que no se salga de la pantalla */
+    .profile-menu {
+        right: 15px;
+        width: 280px;
     }
 }
