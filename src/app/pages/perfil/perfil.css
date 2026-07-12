@@ -91,7 +91,11 @@
 /* BOTONES */
 .form-actions {
     margin-top: 30px;
-    padding-left: 170px; /* alinea botones debajo de inputs */
+    padding-left: 170px;
+    display: flex;
+    gap: 15px; 
+    align-items: center;
+    flex-wrap: wrap;
 }
 
 .form-actions button {
@@ -104,4 +108,22 @@
 
 .form-actions .btn-secondary {
     background: #666;
+}
+
+/* Limita el ancho del modal de edición */
+.modal-editar .modal-content {
+    max-width: 500px;
+}
+
+/* Limita el ancho del modal de contraseña */
+.modal-password .modal-content {
+    max-width: 450px;
+}
+
+/* Contenedor de botones inferiores dentro de los modales */
+.form-actions-modal {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 20px;
 }

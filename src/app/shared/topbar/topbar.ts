@@ -1,6 +1,7 @@
-import { Component, OnInit, HostListener, ElementRef, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, HostListener, ElementRef, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-topbar',
@@ -9,11 +10,13 @@ import { AuthService } from '../../services/auth';
   templateUrl: './topbar.html',
   styleUrls: ['./topbar.css']
 })
-export class Topbar implements OnInit {
+export class Topbar implements OnInit, OnDestroy {
   
   fotoUrlTopbar: string = 'uploads/default-foto.png';
   nombreUsuario: string = 'Cargando...';
   menuAbierto: boolean = false;
+
+  private fotoSub!: Subscription;
 
   constructor(
     private authService: AuthService,
@@ -24,6 +27,10 @@ export class Topbar implements OnInit {
 
   ngOnInit() {
     this.nombreUsuario = localStorage.getItem('nombreCompleto') || 'Usuario';
+    this.fotoSub = this.authService.fotoPerfil$.subscribe((nuevaFotoUrl) => {
+      this.fotoUrlTopbar = nuevaFotoUrl;
+      this.cdr.detectChanges(); // Forzamos el refresco visual en la barra superior
+    });
     this.cargarFotoPerfil();
   }
 
@@ -35,12 +42,15 @@ export class Topbar implements OnInit {
     this.authService.obtenerFotoPerfil(codPersona).subscribe({
       next: (data) => {
         if (data && data.fotoBase64 && data.fotoBase64.trim() !== "") {
-          this.fotoUrlTopbar = `data:image/png;base64,${data.fotoBase64}`;
-          this.cdr.detectChanges();
+          const fotoArmada = `data:image/png;base64,${data.fotoBase64}`;
+          this.authService.actualizarFotoPerfilLocal(fotoArmada);
+        } else {
+          this.authService.actualizarFotoPerfilLocal('/uploads/default-foto.png');
         }
       },
       error: (err) => {
         console.warn("No se pudo cargar la foto del usuario, usando imagen por defecto.");
+        this.authService.actualizarFotoPerfilLocal('/uploads/default-foto.png');
       }
     });
   }
@@ -66,5 +76,12 @@ export class Topbar implements OnInit {
   
   abrirMenuMovil() {
     document.body.classList.add('sidebar-mobile-open');
+  }
+
+  ngOnDestroy() {
+    // Al destruir el componente, nos desuscribimos
+    if (this.fotoSub) {
+      this.fotoSub.unsubscribe();
+    }
   }
 }

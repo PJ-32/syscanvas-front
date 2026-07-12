@@ -25,7 +25,7 @@
                 </div>
                 <div class="profile-divider"></div>
                 
-                <div class="profile-option" routerLink="/perfil" (click)="menuAbierto = false">
+                <div class="profile-option" [routerLink]="['/perfil']" [queryParams]="{accion: 'password'}" (click)="menuAbierto = false">
                     <i class="fa-solid fa-lock"></i>     
                     Cambiar contraseña
                 </div>

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -8,6 +8,17 @@ import { Observable } from 'rxjs';
 export class AuthService {
   // Tu API apuntando a Spring Boot
   private API_URL = 'http://localhost:8080/api';
+
+  // Inicializamos con la imagen por defecto
+  private fotoPerfilSource = new BehaviorSubject<string>('/uploads/default-foto.png');
+  
+  // Exponemos el observable para que los componentes se puedan suscribir
+  fotoPerfil$ = this.fotoPerfilSource.asObservable();
+
+  // Método para actualizar la foto en toda la app sin recargar
+  actualizarFotoPerfilLocal(fotoUrl: string) {
+    this.fotoPerfilSource.next(fotoUrl);
+  }
 
   constructor(private http: HttpClient) {}
 
@@ -24,6 +35,7 @@ export class AuthService {
 
   cerrarSesion() {
     localStorage.clear();
+    this.actualizarFotoPerfilLocal('/uploads/default-foto.png');
   }
 
   estaAutenticado(): boolean {
