@@ -209,6 +209,15 @@
         } @else {
             <!-- PASO 2: Formulario -->
             <form (ngSubmit)="crearCanvas($event)">
+
+                <!-- Mensajes de Alerta -->
+                @if (errorCanvas) {
+                    <div class="alert alert-error show" style="margin-bottom: 15px;">{{ errorCanvas }}</div>
+                }
+                @if (exitoCanvas) {
+                    <div class="alert alert-success show" style="margin-bottom: 15px;">{{ exitoCanvas }}</div>
+                }
+                
                 <div class="form-group">
                     <label class="form-label">Nombre del Canvas *</label>
                     <input type="text" class="form-control" placeholder="Ej: Canvas Desarrollo App Móvil" 

@@ -44,6 +44,10 @@ export class Inicio implements OnInit {
   modalCrearAbierto: boolean = false;
   modoCreacion: string | null = null;
   guardandoCanvas: boolean = false;
+
+  // Variables para Alertas del Modal
+  errorCanvas: string = '';
+  exitoCanvas: string = '';
   
   nuevoCanvas: any = {
     nomCanvas: '',
@@ -190,14 +194,23 @@ export class Inicio implements OnInit {
   // LÓGICA DEL MODAL CREAR CANVAS
   // ==========================================
   abrirModalCrearCanvas() {
+    this.limpiarAlertasCanvas();
     this.modoCreacion = null;
     this.nuevoCanvas = { vincularProyecto: 'SI', codPyto: '', codPersona: '', tipCanvas: '' };
     this.etapasPersonalizadas = [];
     this.modalCrearAbierto = true;
+    this.cdr.detectChanges();
   }
 
   cerrarModalCrearCanvas() {
     this.modalCrearAbierto = false;
+    this.limpiarAlertasCanvas();
+    this.cdr.detectChanges();
+  }
+
+  limpiarAlertasCanvas() {
+    this.errorCanvas = '';
+    this.exitoCanvas = '';
   }
 
   seleccionarOpcion(tipo: string) {
@@ -208,8 +221,10 @@ export class Inicio implements OnInit {
   }
 
   volverPaso1() {
+    this.limpiarAlertasCanvas();
     this.modoCreacion = null;
     this.nuevoCanvas = { vincularProyecto: 'SI', codPyto: '', codPersona: '', tipCanvas: '' };
+    this.cdr.detectChanges();
   }
 
   agregarEtapa() {
@@ -228,14 +243,18 @@ export class Inicio implements OnInit {
 
  crearCanvas(event: Event) {
     event.preventDefault();
+    this.limpiarAlertasCanvas();
+    this.cdr.detectChanges();
 
     if (!this.nuevoCanvas.nomCanvas) {
       alert("El nombre del canvas es obligatorio");
+      this.cdr.detectChanges();
       return;
     }
 
     if (this.nuevoCanvas.vincularProyecto === 'SI' && !this.nuevoCanvas.codPyto) {
       alert("Debe seleccionar un proyecto si desea vincularlo");
+      this.cdr.detectChanges();
       return;
     }
 
@@ -263,6 +282,7 @@ export class Inicio implements OnInit {
       const etapasValidas = this.etapasPersonalizadas.filter((e: any) => e.nomEtapa.trim() !== '');
       if (etapasValidas.length === 0) {
         alert("Agregue al menos una etapa válida");
+        this.cdr.detectChanges();
         return;
       }
       
@@ -278,21 +298,44 @@ export class Inicio implements OnInit {
     }
 
     this.guardandoCanvas = true;
+    this.cdr.detectChanges();
 
     // 3. Un solo envío, una sola transacción en base de datos
     this.http.post<any>(`${this.API_URL}/sc/canvas`, payload).subscribe({
       next: (res) => {
-        alert("Canvas creado correctamente");
         this.guardandoCanvas = false;
-        this.cerrarModalCrearCanvas();
-        
-        // Recargamos el panel inicial directamente
-        this.cargarDatosIniciales(); 
+        this.exitoCanvas = "¡Canvas creado correctamente!";
+        this.cdr.detectChanges();
+
+        // Cierra el modal automáticamente después de 2 segundos
+        setTimeout(() => {
+            this.cerrarModalCrearCanvas();
+            this.cargarDatosIniciales();
+        }, 2000);
       },
       error: (err) => {
         console.error("Error del servidor:", err);
-        alert("Error al crear el canvas. Revisa la consola para más detalles.");
         this.guardandoCanvas = false;
+
+        // 4. Captura Robusta de Errores (Idéntica a tu Login)
+        if (err.error && err.error.errores && err.error.errores.length > 0) {
+          // Si Spring Boot envía una lista de errores de validación
+          this.errorCanvas = err.error.errores.join(' - ');
+        } else if (err.error && err.error.mensaje) {
+          // Si Spring Boot envía un mensaje específico (ej. "El nombre del canvas ya existe")
+          this.errorCanvas = err.error.mensaje;
+        } else if (err.error && typeof err.error === 'string') {
+          // Si envía texto plano
+          this.errorCanvas = err.error;
+        } else if (err.status === 409 || err.status === 500) {
+          // Fallback en caso de que la base de datos rechace la duplicidad pero no haya un JSON claro
+          this.errorCanvas = "No se pudo crear. Es posible que ya exista un Canvas con este nombre exacto.";
+        } else {
+          // Fallback por defecto
+          this.errorCanvas = "Error inesperado al crear el canvas. Revisa tu conexión.";
+        }
+        
+        this.cdr.detectChanges();
       }
     });
   }
