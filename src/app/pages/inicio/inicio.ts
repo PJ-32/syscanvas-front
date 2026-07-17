@@ -2,7 +2,7 @@ import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-inicio',
@@ -59,12 +59,20 @@ export class Inicio implements OnInit {
   };
   etapasPersonalizadas: any[] = [];
 
+  // Variables del Modal de Edición
+  modalEditarAbierto: boolean = false;
+  guardandoEdicion: boolean = false;
+  errorEditarCanvas: string = '';
+  exitoEditarCanvas: string = '';
+  canvasEditando: any = { nomCanvas: '', desCanvas: '', codPersona: '' };
+
   private API_URL = 'http://localhost:8080/api';
 
   constructor(
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
-    private router: Router
+    private router: Router,
+    private route: ActivatedRoute
   ) {}
 
   ngOnInit() {
@@ -75,6 +83,19 @@ export class Inicio implements OnInit {
     
     this.actualizarFecha();
     this.cargarDatosIniciales();
+
+    // Suscripción a queryParams para la apertura automática del modal
+    this.route.queryParams.subscribe(params => {
+      if (params['crear'] === 'true') {
+        this.abrirModalCrearCanvas();
+        
+        // Limpiamos los query params para que recargar la página no vuelva a abrir el modal
+        this.router.navigate([], {
+          queryParams: { crear: null },
+          queryParamsHandling: 'merge'
+        });
+      }
+    });
   }
 
   actualizarFecha() {
@@ -164,21 +185,39 @@ export class Inicio implements OnInit {
 
   aplicarFiltros() {
     this.canvasFiltrados = this.canvasList.filter(c => {
-      let coincideTexto = true;
+      // Filtro por Proyecto (solo Jefe)
+      let coincideProyecto = true;
       if (this.rolUsuario === 'ROLE_JEFE' && this.filtroProyecto) {
-        coincideTexto = c.codPyto == this.filtroProyecto;
-      } else if (this.rolUsuario === 'ROLE_ANALISTA' && this.filtroNombreCanvas) {
-        coincideTexto = c.nomCanvas && c.nomCanvas.toLowerCase().includes(this.filtroNombreCanvas.toLowerCase());
+        if (this.filtroProyecto === 'SIN_PROYECTO') {
+          coincideProyecto = !c.codPyto;
+        } else {
+          coincideProyecto = c.codPyto == this.filtroProyecto;
+        }
       }
 
+      // Buscador por Nombre de Canvas (para ambos roles)
+      let coincideNombre = true;
+      if (this.filtroNombreCanvas) {
+        coincideNombre = c.nomCanvas && c.nomCanvas.toLowerCase().includes(this.filtroNombreCanvas.toLowerCase());
+      }
+
+      // Filtro por Estado (Editable/Bloqueado)
       let coincideEstado = true;
       if (this.filtroEstado !== '') {
         const busquedaEditable = this.filtroEstado === 'true';
         coincideEstado = c.editable === busquedaEditable;
       }
 
-      return coincideTexto && coincideEstado;
+      return coincideProyecto && coincideNombre && coincideEstado;
     });
+    this.cdr.detectChanges();
+  }
+
+  limpiarFiltros() {
+    this.filtroNombreCanvas = '';
+    this.filtroProyecto = '';
+    this.filtroEstado = '';
+    this.aplicarFiltros();
   }
 
   obtenerNombreProyecto(codPyto: number): string {
@@ -354,5 +393,91 @@ export class Inicio implements OnInit {
         }
       });
     });
+  }
+
+  editarCanvas(canvas: any) {
+    this.canvasEditando = { 
+      ...canvas, 
+      codPersona: canvas.codPersona || '' 
+    };
+    this.errorEditarCanvas = '';
+    this.exitoEditarCanvas = '';
+    this.modalEditarAbierto = true;
+    this.cdr.detectChanges();
+  }
+
+  cerrarModalEditarCanvas() {
+    this.modalEditarAbierto = false;
+    this.errorEditarCanvas = '';
+    this.exitoEditarCanvas = '';
+    this.cdr.detectChanges();
+  }
+
+  guardarEdicionCanvas(event: Event) {
+    event.preventDefault();
+    this.errorEditarCanvas = '';
+    this.exitoEditarCanvas = '';
+
+    if (!this.canvasEditando.nomCanvas) {
+      alert("El nombre del canvas es obligatorio");
+      return;
+    }
+
+    this.guardandoEdicion = true;
+    this.cdr.detectChanges();
+
+    const payload = {
+      ...this.canvasEditando,
+      codPersona: this.canvasEditando.codPersona ? Number(this.canvasEditando.codPersona) : null,
+      codPyto: this.canvasEditando.codPyto ? Number(this.canvasEditando.codPyto) : null
+    };
+
+    this.http.put<any>(`${this.API_URL}/sc/canvas/${this.canvasEditando.codCanvas}`, payload).subscribe({
+      next: (res) => {
+        this.guardandoEdicion = false;
+        this.exitoEditarCanvas = "¡Canvas actualizado correctamente!";
+        this.cdr.detectChanges();
+
+        setTimeout(() => {
+          this.cerrarModalEditarCanvas();
+          this.cargarDatosIniciales();
+        }, 1500);
+      },
+      error: (err) => {
+        console.error("Error al actualizar canvas:", err);
+        this.guardandoEdicion = false;
+        this.errorEditarCanvas = err.error?.mensaje || "Error al guardar los cambios del canvas.";
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  toggleBloqueoCanvas(canvas: any) {
+    this.http.put<any>(`${this.API_URL}/sc/canvas/${canvas.codCanvas}/toggle`, {}).subscribe({
+      next: (res) => {
+        const raw = res.data ? res.data : res;
+        canvas.editable = raw.editable;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error("Error al cambiar estado del canvas:", err);
+        alert("No se pudo cambiar el estado del canvas");
+      }
+    });
+  }
+
+  eliminarCanvas(codCanvas: number) {
+    if (confirm("¿Está seguro de que desea eliminar este canvas de forma permanente? Esta acción no se puede deshacer y borrará todas sus etapas y tareas.")) {
+      this.http.delete<any>(`${this.API_URL}/sc/canvas/${codCanvas}`).subscribe({
+        next: () => {
+          alert("Canvas eliminado con éxito");
+          this.cargarDatosIniciales();
+        },
+        error: (err) => {
+          console.error("Error al eliminar canvas:", err);
+          alert("No se pudo eliminar el canvas seleccionado.");
+        }
+      });
+    }
   }
 }

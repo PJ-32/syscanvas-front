@@ -97,352 +97,310 @@
 
 
 /* ==========================================
-   KANBAN BOARD - VERSIÓN PREMIUM MODERNA
+   KANBAN BOARD - TABLERO KANBAN PREMIUM
    ========================================== */
 
-.kanban-board {
-    display: flex;
-    gap: 22px;
-    align-items: flex-start;
-    justify-content: safe center;
-    overflow-x: auto;
-    padding: 24px;
-    min-height: 82vh;
-    border-radius: 14px;
-    background: linear-gradient(
-        135deg,
-        var(--surface) 0%,
-        var(--background) 100%
-    );
-    box-shadow: var(--shadow-md);
+:host {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
-/* COLUMNAS MODERNAS */
-.kanban-column {
-    width: 310px;
-    min-width: 310px;
-    border-radius: 18px;
-    background: rgba(255,255,255,0.75);
-    backdrop-filter: blur(6px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-    border: 1px solid rgba(0,0,0,0.08);
+.container {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+    padding: 24px;
+}
+
+.canvas-detail-header {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.stages-wrapper {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 15px;
+    box-sizing: border-box;
+    border-radius: var(--radius-lg);
+    background: #f1f5f9;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    padding-top: 16px;
+    padding-left: 12px;
+    padding-right: 12px;
+    min-height: 70vh;
+}
+
+/* CUSTOM SCROLLBAR FOR BOARD */
+.stages-wrapper::-webkit-scrollbar {
+    height: 10px;
+    width: 10px;
+}
+
+.stages-wrapper::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.stages-wrapper::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 10px;
+    border: 2px solid #f1f5f9;
+}
+
+.stages-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* COLUMNAS DE ETAPAS */
+.stage-column {
+    flex: 0 0 320px;
+    width: 320px;
+    background: #f8fafc;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
     display: flex;
     flex-direction: column;
-    transition: all .25s ease;
+    max-height: 75vh;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.kanban-column:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+.stage-column:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
 }
 
-/* HEADER MODERNO */
-.kanban-header {
-    padding: 16px;
-    border-radius: 18px 18px 0 0;
-    background: linear-gradient(
-        135deg,
-        var(--primary) 0%,
-        var(--primary-dark) 100%
-    );
-    color: #fff;
-    text-align: center;
-    font-size: 17px;
+/* ENCABEZADOS DE COLUMNA */
+.stage-header {
+    padding: 14px 16px;
+    border-radius: 12px 12px 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.08);
+}
+
+.stage-title {
+    font-size: 14px;
     font-weight: 700;
-    letter-spacing: .6px;
-    box-shadow: inset 0 -2px 4px rgba(0,0,0,0.1);
+    color: #1e293b;
 }
 
-/* CONTENEDOR DE TAREAS */
-.kanban-tasks {
+.stage-badge-count {
+    background: rgba(255, 255, 255, 0.6);
+    color: #475569;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+/* CONTENEDOR INTERNO DE TAREAS */
+.stage-tasks-body {
     flex: 1;
-    padding: 16px;
+    padding: 14px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 12px;
+    min-height: 120px;
 }
-/* TARJETAS PREMIUM */
+
+.stage-tasks-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.stage-tasks-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.stage-tasks-body::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+/* TARJETAS DE TAREA */
 .task-card {
-    background: var(--surface);
-    border-radius: 14px;
+    background: #ffffff;
+    border-radius: 10px;
     padding: 14px 16px;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.12);
-    border-left: 5px solid var(--primary);
-    transition: all 0.22s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--primary);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
     cursor: grab;
-    font-size: 15px;
 }
 
 .task-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
-    background: var(--primary-light);
-    color: #fff;
-}
-
-/* TAREA ARRASTRÁNDOSE */
-.task-card.dragging {
-    opacity: 0.65;
-    transform: rotate(2deg) scale(1.03);
-    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-}
-
-/* ZONA DE DROP ACTIVA */
-.kanban-tasks.drag-over {
-    background: rgba(0,0,0,0.04);
-    border: 2px dashed var(--primary);
-    border-radius: 14px;
-    padding: 18px;
-}
-
-
-
-/* SCROLL MODERNO */
-.kanban-board::-webkit-scrollbar,
-.kanban-tasks::-webkit-scrollbar {
-    height: 10px;
-    width: 8px;
-}
-
-.kanban-board::-webkit-scrollbar-thumb,
-.kanban-tasks::-webkit-scrollbar-thumb {
-    background: var(--primary-light);
-    border-radius: 10px;
-}
-
-.kanban-board::-webkit-scrollbar-thumb:hover,
-.kanban-tasks::-webkit-scrollbar-thumb:hover {
-    background: var(--primary-dark);
-}
-
-/* RESPONSIVE */
-@media (max-width: 768px) {
-    .kanban-board {
-        flex-direction: column;
-    }
-
-    .kanban-column {
-        width: 100%;
-        min-width: 100%;
-    }
-}
-/*  ==========================================
-        BOTONES DE ACCIÓN EN TAREAS
-    ==========================================*/
-.task-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 6px;
-  margin-top: 8px;
-  padding-right: 4px;
-}
-
-.task-actions button,
-.task-actions .action-btn {
-  all: unset;
-  cursor: pointer;
-  font-size: 15px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  color: #555;
-  transition: transform 0.15s ease;
-}
-
-.task-actions button {
-  opacity: 1 !important;
-}
-
-/* Hover limpio sin efectos raros */
-.task-actions button:hover {
-  transform: scale(1.2);
-}
-
-/* Colores de hover */
-.task-actions .ver:hover {
-  color: var(--primary);
-}
-
-.task-actions .editar:hover {
-  color: #f59e0b;
-}
-
-.task-actions .eliminar:hover {
-  color: var(--error);
-}
-
-/* Evitar que el hover del card afecte los botones */
-.task-card:hover .task-actions button {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  color: inherit;
-}
-@keyframes fadeIn {
-  from { opacity: 0 }
-  to { opacity: 1 }
-}
-
-
-@keyframes scaleIn {
-  from { transform: scale(0.92); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-.acciones-canvas {
-    display: flex;
-    gap: 10px;
-}
-
-/* ==========================================
-   CABECERA DEL KANBAN (CONTROLES)
-   ========================================== */
-
-.kanban-header-enhanced {
-    background: var(--surface);
-    padding: 20px 24px;
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-    margin-bottom: 24px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    align-items: center;
-    border: 1px solid rgba(0,0,0,0.05);
-}
-
-/* Agrupación de controles superiores */
-.canvas-controls-group {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-    flex-wrap: wrap;
-    flex: 1; /* Para empujar el progreso a una nueva línea si es necesario */
-}
-
-/* ==========================================
-   BOTONES DE ACCIÓN (Premium)
-   ========================================== */
-
-.btn-canvas-action {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 18px;
-    font-size: 14px;
-    font-weight: 600;
-    border-radius: var(--radius-md);
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: var(--shadow-sm);
-}
-
-.btn-nueva-tarea {
-    background: var(--primary);
-    color: white;
-}
-
-.btn-nueva-tarea:hover:not(:disabled) {
-    background: var(--primary-dark);
     transform: translateY(-2px);
     box-shadow: var(--shadow-md);
-}
-
-.btn-canvas-warning {
-    background: #fef3c7;
-    color: #92400e;
-    border: 1px solid #fde68a;
-}
-
-.btn-canvas-warning:hover:not(:disabled) {
-    background: #fde68a;
-}
-
-.btn-success {
-    background: #d1fae5;
-    color: #065f46;
-    border: 1px solid #a7f3d0;
-}
-
-/* ==========================================
-   BOTONES SECUNDARIOS (Exportar/Importar/Historial)
-   ========================================== */
-
-.acciones-canvas {
-    display: flex;
-    gap: 10px;
-    background: #f8fafc;
-    padding: 6px;
-    border-radius: var(--radius-md);
-    border: 1px solid #e2e8f0;
-}
-
-.btn-accion {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 14px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #475569;
-    background: white;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.btn-accion:hover:not(:disabled) {
-    background: #f1f5f9;
-    color: var(--primary);
     border-color: var(--primary-light);
 }
 
-/* ==========================================
-   BARRA DE PROGRESO GLOBAL
-   ========================================== */
+.task-card:active {
+    cursor: grabbing;
+}
 
-.progreso-header-row {
+.task-card.completada {
+    opacity: 0.7;
+    border-left-color: var(--success);
+    background: #f8fafc;
+}
+
+.task-card.completada .task-title strong {
+    text-decoration: line-through;
+    color: var(--text-secondary);
+}
+
+.task-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.task-desc {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+/* ACCIONES DE TAREA */
+.task-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 10px;
+}
+
+.btn-task-action {
+    background: transparent;
+    border: 1px solid #e2e8f0;
+    color: #64748b;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-task-action:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.btn-task-action.view:hover {
+    background-color: rgba(59, 130, 246, 0.1);
+    border-color: rgba(59, 130, 246, 0.3);
+    color: #2563eb;
+}
+
+.btn-task-action.edit:hover:not(:disabled) {
+    background-color: rgba(245, 158, 11, 0.1);
+    border-color: rgba(245, 158, 11, 0.3);
+    color: #d97706;
+}
+
+.btn-task-action.delete:hover:not(:disabled) {
+    background-color: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.3);
+    color: #dc2626;
+}
+
+.btn-task-action.toggle:hover:not(:disabled) {
+    background-color: rgba(16, 185, 129, 0.1);
+    border-color: rgba(16, 185, 129, 0.3);
+    color: #059669;
+}
+
+/* ACCIONES SECUNDARIAS DEL ENCABEZADO */
+.secondary-actions-bar {
+    display: flex;
+    gap: 10px;
+}
+
+.secondary-actions-bar .btn-outline {
+    background: transparent;
+    border: 1px solid #cbd5e1;
+    color: #475569;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: var(--radius-md);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.secondary-actions-bar .btn-outline:hover:not(:disabled) {
+    background-color: rgba(139, 92, 246, 0.08);
+    border-color: var(--primary-light);
+    color: var(--primary-dark);
+}
+
+/* BADGES PASTEL */
+.badge-success-pastel {
+    background-color: rgba(16, 185, 129, 0.1) !important;
+    color: #065f46 !important;
+    border: 1px solid rgba(16, 185, 129, 0.2) !important;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+.badge-error-pastel {
+    background-color: rgba(239, 68, 68, 0.1) !important;
+    color: #991b1b !important;
+    border: 1px solid rgba(239, 68, 68, 0.2) !important;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 6px 12px;
+    border-radius: 8px;
+    white-space: nowrap;
+    display: inline-block;
+}
+
+.badge-button {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.badge-button:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* BARRA DE PROGRESO MINIMALISTA */
+.progress-bar-container {
     width: 100%;
-    margin-top: 8px;
+    margin-top: 16px;
     padding-top: 16px;
     border-top: 1px dashed #e2e8f0;
 }
 
-.progreso-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 8px;
-    font-size: 14px;
-    color: #475569;
+.progress-fill-gradient {
+    background: linear-gradient(90deg, #8b5cf6 0%, #a78bfa 100%);
 }
 
-.progreso-info strong {
-    color: var(--text-primary);
-    font-size: 15px;
-}
-
-.progreso-info .detalle {
-    background: #f1f5f9;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.progreso-info .porcentaje {
-    font-size: 16px;
-    color: var(--primary);
-}
-
-/* ==========================================
-   TARJETAS DE HISTORIAL (FECHA A LA DERECHA)
-   ========================================== */
-
+/* MODAL DE HISTORIAL */
 .historial-item-card {
     background: white;
     padding: 16px;
@@ -452,10 +410,9 @@
     box-shadow: var(--shadow-sm);
 }
 
-/* El flexbox que separa el título de la fecha */
 .historial-header-flex {
     display: flex;
-    justify-content: space-between; /* Empuja los elementos a los extremos */
+    justify-content: space-between;
     align-items: center;
     margin-bottom: 8px;
     padding-bottom: 8px;
@@ -468,7 +425,6 @@
     font-weight: 700;
 }
 
-/* Diseño de "píldora" para la fecha */
 .historial-fecha-badge {
     font-size: 12px;
     color: #64748b;
@@ -495,4 +451,28 @@
     padding: 4px 8px;
     border-radius: 6px;
     border: 1px solid #e2e8f0;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .stages-wrapper {
+        padding-left: 12px;
+        padding-right: 12px;
+    }
+
+    .stage-column {
+        flex: 0 0 85%;
+        min-width: unset;
+        max-width: 85%;
+    }
+    
+    .canvas-detail-header .header-row-main {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+    
+    .canvas-detail-header .header-right {
+        width: 100%;
+        justify-content: space-between;
+    }
 }

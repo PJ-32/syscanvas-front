@@ -16,7 +16,7 @@
         </a>
 
         @if (rolUsuario === 'ROLE_JEFE') {
-            <a (click)="abrirModalCrearCanvas()" class="menu-item">
+            <a [routerLink]="['/inicio']" [queryParams]="{ crear: 'true' }" class="menu-item">
                 <span class="menu-icon"><i class="fa-solid fa-plus"></i></span>
                 <span class="menu-text">Crear Canvas</span>
             </a>

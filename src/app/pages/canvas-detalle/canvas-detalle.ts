@@ -22,6 +22,7 @@ export class CanvasDetalle implements OnInit {
   
   codPersonaActual: number = 0;
   nombreCompleto: string = '';
+  rolUsuario: string = '';
 
   // Modales (Control de visibilidad)
   modalTareaAbierto: boolean = false;
@@ -52,6 +53,7 @@ export class CanvasDetalle implements OnInit {
   ngOnInit() {
     this.codPersonaActual = Number(localStorage.getItem('codPersona') || 0);
     this.nombreCompleto = localStorage.getItem('nombreCompleto') || `Usuario ${this.codPersonaActual}`;
+    this.rolUsuario = localStorage.getItem('rol') || '';
     
     // Leer el ID de la URL (ej: ?id=15)
     this.route.queryParams.subscribe(params => {

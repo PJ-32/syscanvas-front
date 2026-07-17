@@ -17,6 +17,8 @@ body {
     transition: margin-left 0.3s ease;
     display: flex;
     flex-direction: column;
+    min-width: 0;
+    overflow-x: hidden;
 }
 
 /* Magia de Angular: Cuando el body tiene la clase, el contenido se adapta */

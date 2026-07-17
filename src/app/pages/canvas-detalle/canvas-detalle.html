@@ -6,105 +6,125 @@
         </div>
     }
 
-    <header class="header-content kanban-header-enhanced" style="margin-bottom: 20px;">
-        <div class="canvas-title-wrapper">
-            <span class="canvas-title-label">🗂️ Canvas:</span>
-            <span class="canvas-title-value">{{ canvasActual?.nomCanvas || 'Cargando...' }}</span>
-        </div>
+    <header class="canvas-detail-header" style="margin-bottom: 24px;">
+        <div class="header-row-main" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+            <div class="header-left">
+                <h1 class="canvas-title" style="margin: 0; font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+                    <span class="folder-icon">📁</span>
+                    {{ canvasActual?.nomCanvas || 'Cargando...' }}
+                </h1>
+            </div>
 
-        <div class="canvas-search-wrapper">
-            <select class="canvas-selector" (change)="cambiarCanvas($event)" [ngModel]="canvasId" [disabled]="canvasBloqueado">
-                <option value="">Seleccionar canvas…</option>
-                @for (c of listaCanvas; track c.codCanvas) {
-                    <option [value]="c.codCanvas">{{ c.nomCanvas }}</option>
-                }
-            </select>
-        </div>
-
-        <button class="btn-canvas-action" [ngClass]="canvasBloqueado ? 'btn-canvas-warning' : 'btn-success'" (click)="toggleBloqueo()">
-            {{ canvasBloqueado ? '🔒 Bloqueado' : '✅ Desbloqueado' }}
-        </button>
-
-        <button class="btn-canvas-action btn-nueva-tarea" (click)="abrirModalCrearTarea()" [disabled]="canvasBloqueado">
-            <i class="fa-solid fa-plus"></i> Nueva tarea
-        </button>
-
-        <div class="acciones-canvas">
-            <button class="btn-accion" (click)="exportarCanvas()">
-                <i class="fa fa-download"></i> Exportar
-            </button>
-            <label class="btn-accion btn-label" style="cursor: pointer;">
-                <i class="fa fa-upload"></i> Importar
-                <input type="file" accept=".json" style="display: none;" (change)="importarCanvas($event)" [disabled]="canvasBloqueado">
-            </label>
-            <button class="btn-accion" (click)="abrirHistorial()">
-                <i class="fa-solid fa-clock-rotate-left"></i> Historial
-            </button>
-        </div>
-
-        <div class="progreso-header-row mt-3 w-100">
-            <div class="progreso-wrapper">
-                <div class="progreso-info flex justify-between">
-                    <strong>Progreso General</strong>
-                    <span class="detalle">
-                        <span>{{ canvasActual?.tareasCompletadas || 0 }}</span> de 
-                        <span>{{ canvasActual?.totalTareas || 0 }}</span> tareas
+            <div class="header-right" style="display: flex; align-items: center; gap: 12px;">
+                @if (rolUsuario === 'ROLE_JEFE') {
+                    <button class="badge-button badge" 
+                            [ngClass]="canvasBloqueado ? 'badge-error-pastel' : 'badge-success-pastel'" 
+                            (click)="toggleBloqueo()" 
+                            [title]="canvasBloqueado ? 'Clic para desbloquear canvas' : 'Clic para bloquear canvas'"
+                            style="cursor: pointer; border: none;">
+                        {{ canvasBloqueado ? '🔒 Bloqueado' : '✏️ Editable' }}
+                    </button>
+                } @else {
+                    <span class="badge" [ngClass]="canvasBloqueado ? 'badge-error-pastel' : 'badge-success-pastel'">
+                        {{ canvasBloqueado ? '🔒 Bloqueado' : '✏️ Editable' }}
                     </span>
-                    <span class="porcentaje font-bold">{{ canvasActual?.porcentajeProgreso || 0 | number:'1.0-0' }}%</span>
+                }
+                
+                <button class="btn btn-primary btn-nueva-tarea" (click)="abrirModalCrearTarea()" [disabled]="canvasBloqueado">
+                    <i class="fa-solid fa-plus"></i> Nueva tarea
+                </button>
+            </div>
+        </div>
+
+        <div class="header-row-secondary" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+            <div class="secondary-actions-bar">
+                <button class="btn btn-outline" (click)="exportarCanvas()" title="Exportar Canvas">
+                    <i class="fa fa-download"></i> Exportar
+                </button>
+                <label class="btn btn-outline btn-label" style="cursor: pointer; margin: 0;" title="Importar Canvas">
+                    <i class="fa fa-upload"></i> Importar
+                    <input type="file" accept=".json" style="display: none;" (change)="importarCanvas($event)" [disabled]="canvasBloqueado">
+                </label>
+                <button class="btn btn-outline" (click)="abrirHistorial()" title="Historial de Modificaciones">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Historial
+                </button>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar-labels" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 13px; color: var(--text-secondary); font-weight: 600;">
+                <span class="progress-title" style="color: var(--text-primary);">Progreso General</span>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <span class="progress-counter" style="background: #f1f5f9; padding: 2px 8px; border-radius: 12px; font-size: 11px;">
+                        {{ canvasActual?.tareasCompletadas || 0 }} de {{ canvasActual?.totalTareas || 0 }} tareas
+                    </span>
+                    <span class="progress-pct" style="color: var(--primary); font-size: 14px; font-weight: 700;">
+                        {{ canvasActual?.porcentajeProgreso || 0 | number:'1.0-0' }}%
+                    </span>
                 </div>
-                <div class="progress-bar bg-gray-200 h-2 rounded mt-1">
-                    <div class="progress-fill bg-blue-500 h-2 rounded transition-all" [style.width.%]="canvasActual?.porcentajeProgreso || 0"></div>
+            </div>
+            <div class="progress-track" style="background: #e2e8f0; height: 6px; border-radius: 10px; overflow: hidden; width: 100%;">
+                <div class="progress-fill-gradient" 
+                     [style.width.%]="canvasActual?.porcentajeProgreso || 0"
+                     style="height: 100%; border-radius: 10px; transition: width 0.3s ease;">
                 </div>
             </div>
         </div>
     </header>
 
     @if (canvasActual) {
-    <main class="kanban-board" [class.bloqueado]="canvasBloqueado">
-        @for (etapa of etapasGlobal; track etapa.codEtapa; let i = $index) {
-            <div class="kanban-column">
-                
-                <div class="kanban-header" [style.background]="obtenerColorEtapa(i)" style="color: #333; font-weight: 600;">
-                    {{ etapa.nomEtapa }}
-                </div>
-                
-                <div class="kanban-tasks" 
-                     (dragover)="handleDragOver($event)" 
-                     (drop)="handleDrop($event, etapa.codEtapa)">
+        <main class="stages-wrapper" [class.bloqueado]="canvasBloqueado">
+            @for (etapa of etapasGlobal; track etapa.codEtapa; let i = $index) {
+                <div class="stage-column">
                     
-                    @for (tarea of (etapa.tareas || []); track tarea.codTarea) {
-                        <div class="task-card" draggable="true" 
-                             (dragstart)="handleDragStart($event, tarea)"
-                             [class.completada]="tarea?.vigente === 0">
-                            
-                            <div class="task-title">
-                                <strong>{{ tarea?.nomTarea || 'Sin nombre' }}</strong>
+                    <div class="stage-header" [style.backgroundColor]="obtenerColorEtapa(i)">
+                        <span class="stage-title">{{ etapa.nomEtapa }}</span>
+                        <span class="stage-badge-count">{{ (etapa.tareas || []).length }}</span>
+                    </div>
+                    
+                    <div class="stage-tasks-body" 
+                         (dragover)="handleDragOver($event)" 
+                         (drop)="handleDrop($event, etapa.codEtapa)">
+                        
+                        @for (tarea of (etapa.tareas || []); track tarea.codTarea) {
+                            <div class="task-card" draggable="true" 
+                                 (dragstart)="handleDragStart($event, tarea)"
+                                 [class.completada]="tarea?.vigente === 0">
+                                
+                                <div class="task-title">
+                                    <strong>{{ tarea?.nomTarea || 'Sin nombre' }}</strong>
+                                </div>
+                                
+                                <div class="task-desc">
+                                    {{ (tarea?.desTarea?.length || 0) > 100 ? (tarea?.desTarea | slice:0:100) + '...' : (tarea?.desTarea || 'Sin descripción') }}
+                                </div>
+                                
+                                <div class="task-actions">
+                                    <button class="btn-task-action view" title="Ver Detalle" (click)="verTarea(tarea)">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                    <button class="btn-task-action edit" title="Editar Tarea" (click)="editarTarea(tarea)" [disabled]="canvasBloqueado">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+                                    <button class="btn-task-action delete" title="Eliminar Tarea" (click)="abrirEliminarTarea(tarea)" [disabled]="canvasBloqueado">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                    <button class="btn-task-action toggle" 
+                                            [title]="tarea?.vigente === 0 ? 'Reabrir Tarea' : 'Completar Tarea'" 
+                                            (click)="cambiarEstadoTarea(tarea)" 
+                                            [disabled]="canvasBloqueado">
+                                        <i class="fa-solid" [class.fa-rotate-left]="tarea?.vigente === 0" [class.fa-check]="tarea?.vigente !== 0"></i>
+                                    </button>
+                                </div>
                             </div>
-                            
-                            <div class="task-desc text-sm text-gray-600 mb-2">
-                                {{ (tarea?.desTarea?.length || 0) > 100 ? (tarea?.desTarea | slice:0:100) + '...' : (tarea?.desTarea || 'Sin descripción') }}
-                            </div>
-                            
-                            <div class="task-actions flex justify-end gap-1">
-                                <button class="btn-view" title="Ver" (click)="verTarea(tarea)">🔎</button>
-                                <button class="btn-edit" title="Editar" (click)="editarTarea(tarea)" [disabled]="canvasBloqueado">✏️</button>
-                                <button class="btn-delete" title="Eliminar" (click)="abrirEliminarTarea(tarea)" [disabled]="canvasBloqueado">🗑️</button>
-                                <button class="btn-toggle" 
-                                        [title]="tarea?.vigente === 0 ? 'Reabrir' : 'Completar'" 
-                                        (click)="cambiarEstadoTarea(tarea)" 
-                                        [disabled]="canvasBloqueado">
-                                    {{ tarea?.vigente === 0 ? '↩️' : '✔️' }}
-                                </button>
-                            </div>
-                        </div>
-                    }
+                        }
+                    </div>
                 </div>
-            </div>
-        }
-    </main>
-} @else {
-    <div class="loading-container">Cargando tablero...</div>
-}
+            }
+        </main>
+    } @else {
+        <div class="loading-container">Cargando tablero...</div>
+    }
 
 </div>
 
