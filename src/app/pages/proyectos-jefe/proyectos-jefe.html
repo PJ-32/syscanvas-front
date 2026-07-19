@@ -17,7 +17,8 @@
     <div class="filters-grid">
       <div class="filter-group search-group">
         <label for="search-proyecto"><i class="fa-solid fa-magnifying-glass"></i> Buscar por Nombre</label>
-        <input type="text" id="search-proyecto" [(ngModel)]="filtroNombre" (input)="aplicarFiltros()" placeholder="Escribe el nombre del proyecto..." class="form-control" />
+        <input type="text" id="search-proyecto" [(ngModel)]="filtroNombre" (input)="aplicarFiltros()"
+          placeholder="Escribe el nombre del proyecto..." class="form-control" />
       </div>
       <div class="filter-group select-group">
         <label for="status-proyecto"><i class="fa-solid fa-filter"></i> Estado del Proyecto</label>
@@ -32,74 +33,73 @@
 
   <!-- Loading State -->
   @if (cargando) {
-    <div class="loading-state">
-      <div class="spinner-premium"></div>
-      <p>Cargando proyectos del workspace...</p>
-    </div>
+  <div class="loading-state">
+    <div class="spinner-premium"></div>
+    <p>Cargando proyectos del workspace...</p>
+  </div>
   } @else {
-    <!-- Grid de Proyectos -->
-    @if (proyectosFiltrados.length > 0) {
-      <div class="projects-grid">
-        @for (p of proyectosFiltrados; track p.codPyto) {
-          <div class="project-card">
-            <!-- Card Header -->
-            <div class="card-header-premium">
-              <span class="project-badge" [class.badge-active]="p.vigente === 1" [class.badge-inactive]="p.vigente !== 1">
-                {{ p.vigente === 1 ? 'Activo' : 'Inactivo' }}
-              </span>
-              <span class="project-years">
-                <i class="fa-regular fa-calendar"></i> {{ p.annoIni && p.annoFin ? p.annoIni + ' - ' + p.annoFin : 'Sin fecha' }}
-              </span>
-            </div>
+  <!-- Grid de Proyectos -->
+  @if (proyectosFiltrados.length > 0) {
+  <div class="projects-grid">
+    @for (p of proyectosFiltrados; track p.codPyto) {
+    <div class="project-card">
+      <!-- Card Header -->
+      <div class="card-header-premium">
+        <span class="project-badge" [class.badge-active]="p.vigente === 1" [class.badge-inactive]="p.vigente !== 1">
+          {{ p.vigente === 1 ? 'Activo' : 'Inactivo' }}
+        </span>
+        <span class="project-years">
+          <i class="fa-regular fa-calendar"></i> {{ p.annoIni && p.annoFin ? p.annoIni + ' - ' + p.annoFin : 'Sin fecha'
+          }}
+        </span>
+      </div>
 
-            <!-- Card Body -->
-            <div class="card-body-premium">
-              <h3 class="project-title">{{ p.nomPyto }}</h3>
-              
-              <div class="project-meta-indicators">
-                <div class="meta-item">
-                  <i class="fa-solid fa-folder-open icon-canvas"></i>
-                  <span><strong>{{ p.totalCanvas }}</strong> Canvas</span>
-                </div>
-                <div class="meta-item">
-                  <i class="fa-solid fa-list-check icon-tasks"></i>
-                  <span><strong>{{ p.totalTareas }}</strong> Tareas</span>
-                </div>
-              </div>
+      <!-- Card Body -->
+      <div class="card-body-premium">
+        <h3 class="project-title">{{ p.nomPyto }}</h3>
 
-              <!-- Radial Progress (SVG/CSS) -->
-              <div class="progress-radial-container">
-                <svg class="radial-progress-svg" viewBox="0 0 36 36">
-                  <path class="circle-bg" 
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                  <path class="circle-fill" 
-                        [style.strokeDasharray]="p.progreso + ', 100'"
-                        [ngClass]="obtenerClaseProgreso(p.progreso)"
-                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                  <text x="18" y="20.35" class="circle-percentage">{{ p.progreso }}%</text>
-                </svg>
-                <span class="progress-label">Progreso Promedio</span>
-              </div>
-            </div>
-
-            <!-- Card Footer -->
-            <div class="card-footer-premium">
-              <button class="btn btn-workspace" (click)="abrirEspacioTrabajo(p)">
-                Ver Espacio de Trabajo <i class="fa-solid fa-arrow-right-long"></i>
-              </button>
-            </div>
+        <div class="project-meta-indicators">
+          <div class="meta-item">
+            <i class="fa-solid fa-folder-open icon-canvas"></i>
+            <span><strong>{{ p.totalCanvas }}</strong> Canvas</span>
           </div>
-        }
+          <div class="meta-item">
+            <i class="fa-solid fa-list-check icon-tasks"></i>
+            <span><strong>{{ p.totalTareas }}</strong> Tareas</span>
+          </div>
+        </div>
+
+        <!-- Radial Progress (SVG/CSS) -->
+        <div class="progress-radial-container">
+          <svg class="radial-progress-svg" viewBox="0 0 36 36">
+            <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            <path class="circle-fill" [style.strokeDasharray]="p.progreso + ', 100'"
+              [ngClass]="obtenerClaseProgreso(p.progreso)"
+              d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+            <text x="18" y="20.35" class="circle-percentage">{{ p.progreso }}%</text>
+          </svg>
+          <span class="progress-label">Progreso Promedio</span>
+        </div>
       </div>
-    } @else {
-      <!-- Empty State -->
-      <div class="empty-state-card">
-        <div class="empty-icon"><i class="fa-solid fa-folder-open"></i></div>
-        <h3>No se encontraron proyectos</h3>
-        <p>Intenta cambiar los filtros de búsqueda o el estado del proyecto.</p>
-        <button class="btn btn-secondary" (click)="limpiarFiltros()">Restablecer Filtros</button>
+
+      <!-- Card Footer -->
+      <div class="card-footer-premium">
+        <button class="btn btn-workspace" (click)="abrirEspacioTrabajo(p)">
+          Ver Espacio de Trabajo <i class="fa-solid fa-arrow-right-long"></i>
+        </button>
       </div>
+    </div>
     }
+  </div>
+  } @else {
+  <!-- Empty State -->
+  <div class="empty-state-card">
+    <div class="empty-icon"><i class="fa-solid fa-folder-open"></i></div>
+    <h3>No se encontraron proyectos</h3>
+    <p>Intenta cambiar los filtros de búsqueda o el estado del proyecto.</p>
+    <button class="btn btn-secondary" (click)="limpiarFiltros()">Restablecer Filtros</button>
+  </div>
+  }
   }
 </div>
 
@@ -108,160 +108,160 @@
 
 <div class="drawer-panel" [class.open]="drawerAbierto">
   @if (proyectoSeleccionado) {
-    <!-- Drawer Header -->
-    <div class="drawer-header">
-      <div class="drawer-title-area">
-        <div class="title-top-badge">
-          <span class="drawer-badge" [class.badge-active]="proyectoSeleccionado.vigente === 1">
-            {{ proyectoSeleccionado.vigente === 1 ? 'Activo' : 'Inactivo' }}
-          </span>
-        </div>
-        <h2>{{ proyectoSeleccionado.nomPyto }}</h2>
-        <p class="drawer-subtitle"><i class="fa-regular fa-calendar"></i> Período: {{ proyectoSeleccionado.annoIni }} - {{ proyectoSeleccionado.annoFin }}</p>
+  <!-- Drawer Header -->
+  <div class="drawer-header">
+    <div class="drawer-title-area">
+      <div class="title-top-badge">
+        <span class="drawer-badge" [class.badge-active]="proyectoSeleccionado.vigente === 1">
+          {{ proyectoSeleccionado.vigente === 1 ? 'Activo' : 'Inactivo' }}
+        </span>
       </div>
-      <button class="btn-close-drawer" (click)="cerrarEspacioTrabajo()">&times;</button>
+      <h2>{{ proyectoSeleccionado.nomPyto }}</h2>
+      <p class="drawer-subtitle"><i class="fa-regular fa-calendar"></i> Período: {{ proyectoSeleccionado.annoIni }} - {{
+        proyectoSeleccionado.annoFin }}</p>
     </div>
+    <button class="btn-close-drawer" (click)="cerrarEspacioTrabajo()">&times;</button>
+  </div>
 
-    <!-- Drawer Tabs -->
-    <div class="drawer-tabs">
-      <button class="tab-button" [class.active]="tabActivo === 'canvas'" (click)="seleccionarTab('canvas')">
-        <i class="fa-solid fa-folder-tree"></i> Canvas
-      </button>
-      <button class="tab-button" [class.active]="tabActivo === 'estadisticas'" (click)="seleccionarTab('estadisticas')">
-        <i class="fa-solid fa-chart-line"></i> Estadísticas
-      </button>
-    </div>
+  <!-- Drawer Tabs -->
+  <div class="drawer-tabs">
+    <button class="tab-button" [class.active]="tabActivo === 'canvas'" (click)="seleccionarTab('canvas')">
+      <i class="fa-solid fa-folder-tree"></i> Canvas
+    </button>
+    <button class="tab-button" [class.active]="tabActivo === 'estadisticas'" (click)="seleccionarTab('estadisticas')">
+      <i class="fa-solid fa-chart-line"></i> Estadísticas
+    </button>
+  </div>
 
-    <!-- Drawer Body -->
-    <div class="drawer-body">
-      <!-- Pestaña 'Canvas' -->
-      @if (tabActivo === 'canvas') {
-        <div class="tab-pane">
-          @if (canvasProyecto.length > 0) {
-            <div class="canvas-list-premium">
-              @for (c of canvasProyecto; track c.codCanvas) {
-                <div class="canvas-card-premium">
-                  <div class="canvas-card-header">
-                    <span class="badge-lock" [class.locked]="!c.editable" [class.editable]="c.editable">
-                      @if (c.editable) {
-                        <i class="fa-solid fa-pen"></i> Editable
-                      } @else {
-                        <i class="fa-solid fa-lock"></i> Bloqueado
-                      }
-                    </span>
-                    <h4>{{ c.nomCanvas }}</h4>
-                  </div>
-                  
-                  <p class="canvas-desc">{{ c.desCanvas || 'Sin descripción detallada' }}</p>
-
-                  <div class="canvas-card-footer">
-                    <!-- Encargado circular visual style -->
-                    <div class="assignee-box">
-                      @let emp = obtenerEncargado(c.codPersona);
-                      @if (emp) {
-                        <div class="avatar-container">
-                          @if (emp.fotoUrl && emp.fotoUrl !== '/uploads/default-foto.png') {
-                            <img [src]="'http://localhost:8080/api' + emp.fotoUrl" class="assignee-avatar-circle" alt="Foto de {{ emp.nombre }}">
-                          } @else {
-                            <div class="assignee-initials-circle" [style.backgroundColor]="obtenerColorAvatar(emp.nombre)">
-                              {{ obtenerIniciales(emp.nombre, emp.apellido) }}
-                            </div>
-                          }
-                        </div>
-                        <div class="assignee-info">
-                          <span class="assignee-label">Encargado</span>
-                          <span class="assignee-name">{{ emp.nombre }} {{ emp.apellido }}</span>
-                        </div>
-                      } @else {
-                        <div class="avatar-container">
-                          <div class="assignee-initials-circle unassigned">
-                            ?
-                          </div>
-                        </div>
-                        <div class="assignee-info">
-                          <span class="assignee-label">Encargado</span>
-                          <span class="assignee-name unassigned-text">Sin asignar</span>
-                        </div>
-                      }
-                    </div>
-
-                    <!-- Acción -->
-                    <button class="btn btn-go-canvas" (click)="verCanvasDetalle(c.codCanvas)">
-                      Ver Canvas <i class="fa-solid fa-chevron-right"></i>
-                    </button>
-                  </div>
-                </div>
+  <!-- Drawer Body -->
+  <div class="drawer-body">
+    <!-- Pestaña 'Canvas' -->
+    @if (tabActivo === 'canvas') {
+    <div class="tab-pane">
+      @if (canvasProyecto.length > 0) {
+      <div class="canvas-list-premium">
+        @for (c of canvasProyecto; track c.codCanvas) {
+        <div class="canvas-card-premium">
+          <div class="canvas-card-header">
+            <span class="badge-lock" [class.locked]="!c.editable" [class.editable]="c.editable">
+              @if (c.editable) {
+              <i class="fa-solid fa-pen"></i> Editable
+              } @else {
+              <i class="fa-solid fa-lock"></i> Bloqueado
               }
-            </div>
-          } @else {
-            <div class="empty-state-inner">
-              <i class="fa-solid fa-folder-open empty-icon-small"></i>
-              <p>Este proyecto no tiene ningún canvas asociado aún.</p>
-            </div>
-          }
-        </div>
-      }
-
-      <!-- Pestaña 'Estadísticas' -->
-      @if (tabActivo === 'estadisticas') {
-        <div class="tab-pane animate-fade-in">
-          <!-- KPI Cards -->
-          <div class="kpis-row">
-            <div class="kpi-card-premium kpi-indigo">
-              <div class="kpi-icon"><i class="fa-solid fa-folder-closed"></i></div>
-              <div class="kpi-data">
-                <span class="kpi-value">{{ kpiTotalCanvas }}</span>
-                <span class="kpi-label">Canvas Totales</span>
-              </div>
-            </div>
-            <div class="kpi-card-premium kpi-violet">
-              <div class="kpi-icon"><i class="fa-solid fa-list-check"></i></div>
-              <div class="kpi-data">
-                <span class="kpi-value">{{ kpiTotalTareas }}</span>
-                <span class="kpi-label">Tareas Totales</span>
-              </div>
-            </div>
-            <div class="kpi-card-premium kpi-gradient">
-              <div class="kpi-icon"><i class="fa-solid fa-chart-simple"></i></div>
-              <div class="kpi-data">
-                <span class="kpi-value">{{ kpiProgresoPromedio }}%</span>
-                <span class="kpi-label">Progreso Prom.</span>
-              </div>
-            </div>
+            </span>
+            <h4>{{ c.nomCanvas }}</h4>
           </div>
 
-          <!-- Canvas Progress Bars -->
-          <div class="canvas-progress-list">
-            <h3>Progreso Individual por Canvas</h3>
-            @if (canvasProyecto.length > 0) {
-              <div class="progress-bars-container">
-                @for (c of canvasProyecto; track c.codCanvas) {
-                  <div class="canvas-progress-row">
-                    <div class="canvas-info-row">
-                      <span class="canvas-name-label">{{ c.nomCanvas }}</span>
-                      <span class="canvas-percentage-val">{{ c.progreso }}%</span>
-                    </div>
-                    <div class="canvas-bar-track">
-                      <div class="canvas-bar-fill" 
-                           [style.width.%]="c.progreso"
-                           [ngClass]="obtenerClaseProgreso(c.progreso)">
-                      </div>
-                    </div>
-                    <div class="canvas-subinfo-row">
-                      <span>{{ c.tareasCompletadas || 0 }} de {{ c.totalTareas || 0 }} tareas completadas</span>
-                    </div>
-                  </div>
+          <p class="canvas-desc">{{ c.desCanvas || 'Sin descripción detallada' }}</p>
+
+          <div class="canvas-card-footer">
+            <!-- Encargado circular visual style -->
+            <div class="assignee-box">
+              @let emp = obtenerEncargado(c.codPersona);
+              @if (emp) {
+              <div class="avatar-container">
+                @if (emp.fotoUrl && emp.fotoUrl !== '/uploads/default-foto.png') {
+                <img [src]="'http://localhost:8080/api' + emp.fotoUrl" class="assignee-avatar-circle"
+                  alt="Foto de {{ emp.nombre }}">
+                } @else {
+                <div class="assignee-initials-circle" [style.backgroundColor]="obtenerColorAvatar(emp.nombre)">
+                  {{ obtenerIniciales(emp.nombre, emp.apellido) }}
+                </div>
                 }
               </div>
-            } @else {
-              <div class="empty-state-inner">
-                <i class="fa-solid fa-chart-bar empty-icon-small"></i>
-                <p>No hay datos estadísticos para graficar.</p>
+              <div class="assignee-info">
+                <span class="assignee-label">Encargado</span>
+                <span class="assignee-name">{{ emp.nombre }} {{ emp.apellido }}</span>
               </div>
-            }
+              } @else {
+              <div class="avatar-container">
+                <div class="assignee-initials-circle unassigned">
+                  ?
+                </div>
+              </div>
+              <div class="assignee-info">
+                <span class="assignee-label">Encargado</span>
+                <span class="assignee-name unassigned-text">Sin asignar</span>
+              </div>
+              }
+            </div>
+
+            <!-- Acción -->
+            <button class="btn btn-go-canvas" (click)="verCanvasDetalle(c.codCanvas)">
+              Ver Canvas <i class="fa-solid fa-chevron-right"></i>
+            </button>
           </div>
         </div>
+        }
+      </div>
+      } @else {
+      <div class="empty-state-inner">
+        <i class="fa-solid fa-folder-open empty-icon-small"></i>
+        <p>Este proyecto no tiene ningún canvas asociado aún.</p>
+      </div>
       }
     </div>
+    }
+
+    <!-- Pestaña 'Estadísticas' -->
+    @if (tabActivo === 'estadisticas') {
+    <div class="tab-pane animate-fade-in">
+      <!-- KPI Cards -->
+      <div class="kpis-row">
+        <div class="kpi-card-premium kpi-indigo">
+          <div class="kpi-icon"><i class="fa-solid fa-folder-closed"></i></div>
+          <div class="kpi-data">
+            <span class="kpi-value">{{ kpiTotalCanvas }}</span>
+            <span class="kpi-label">Canvas Totales</span>
+          </div>
+        </div>
+        <div class="kpi-card-premium kpi-violet">
+          <div class="kpi-icon"><i class="fa-solid fa-list-check"></i></div>
+          <div class="kpi-data">
+            <span class="kpi-value">{{ kpiTotalTareas }}</span>
+            <span class="kpi-label">Tareas Totales</span>
+          </div>
+        </div>
+        <div class="kpi-card-premium kpi-gradient">
+          <div class="kpi-icon"><i class="fa-solid fa-chart-simple"></i></div>
+          <div class="kpi-data">
+            <span class="kpi-value">{{ kpiProgresoPromedio }}%</span>
+            <span class="kpi-label">Progreso Prom.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Canvas Progress Bars -->
+      <div class="canvas-progress-list">
+        <h3>Progreso Individual por Canvas</h3>
+        @if (canvasProyecto.length > 0) {
+        <div class="progress-bars-container">
+          @for (c of canvasProyecto; track c.codCanvas) {
+          <div class="canvas-progress-row">
+            <div class="canvas-info-row">
+              <span class="canvas-name-label">{{ c.nomCanvas }}</span>
+              <span class="canvas-percentage-val">{{ c.progreso }}%</span>
+            </div>
+            <div class="canvas-bar-track">
+              <div class="canvas-bar-fill" [style.width.%]="c.progreso" [ngClass]="obtenerClaseProgreso(c.progreso)">
+              </div>
+            </div>
+            <div class="canvas-subinfo-row">
+              <span>{{ c.tareasCompletadas || 0 }} de {{ c.totalTareas || 0 }} tareas completadas</span>
+            </div>
+          </div>
+          }
+        </div>
+        } @else {
+        <div class="empty-state-inner">
+          <i class="fa-solid fa-chart-bar empty-icon-small"></i>
+          <p>No hay datos estadísticos para graficar.</p>
+        </div>
+        }
+      </div>
+    </div>
+    }
+  </div>
   }
 </div>

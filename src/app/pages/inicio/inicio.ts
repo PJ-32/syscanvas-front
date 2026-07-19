@@ -17,7 +17,7 @@ import { Empleado } from '../../core/models/empleado.model';
   styleUrls: ['./inicio.css']
 })
 export class Inicio implements OnInit {
-  
+
   // Variables de Sesión
   rolUsuario: string = '';
   nombreUsuario: string = 'Usuario';
@@ -53,7 +53,7 @@ export class Inicio implements OnInit {
   // Variables para Alertas del Modal
   errorCanvas: string = '';
   exitoCanvas: string = '';
-  
+
   nuevoCanvas: any = {
     nomCanvas: '',
     desCanvas: '',
@@ -78,14 +78,14 @@ export class Inicio implements OnInit {
     private cdr: ChangeDetectorRef,
     private router: Router,
     private route: ActivatedRoute
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.rolUsuario = localStorage.getItem('rol') || '';
     this.codPersonaActual = Number(localStorage.getItem('codPersona') || 0);
     const nombreCompleto = localStorage.getItem('nombreCompleto') || 'Usuario';
     this.nombreUsuario = nombreCompleto.split(' ')[0];
-    
+
     this.actualizarFecha();
     this.cargarDatosIniciales();
 
@@ -93,7 +93,7 @@ export class Inicio implements OnInit {
     this.route.queryParams.subscribe(params => {
       if (params['crear'] === 'true') {
         this.abrirModalCrearCanvas();
-        
+
         // Limpiamos los query params para que recargar la página no vuelva a abrir el modal
         this.router.navigate([], {
           queryParams: { crear: null },
@@ -129,9 +129,9 @@ export class Inicio implements OnInit {
         this.cargando = false;
         this.cdr.detectChanges();
       },
-      error: (err) => { 
-        console.error("Error cargando canvas", err); 
-        this.cargando = false; 
+      error: (err) => {
+        console.error("Error cargando canvas", err);
+        this.cargando = false;
         this.cdr.detectChanges();
       }
     });
@@ -146,7 +146,7 @@ export class Inicio implements OnInit {
       this.empleadoService.obtenerEmpleadosActivos().subscribe(empleados => {
         this.empleadosList = empleados;
       });
-      
+
       this.canvasService.obtenerTiposCanvas().subscribe(tipos => {
         this.tiposCanvasList = tipos.filter((t: any) => t.vigente === 1 && t.tipCanvas !== 'F');
       });
@@ -164,14 +164,14 @@ export class Inicio implements OnInit {
 
     if (this.rolUsuario === 'ROLE_JEFE') {
       const proyectosUnicos = new Set(this.canvasList.map(c => c.codPyto).filter(Boolean)).size;
-      this.stat1 = proyectosUnicos; 
-      this.stat2 = this.canvasList.length; 
+      this.stat1 = proyectosUnicos;
+      this.stat2 = this.canvasList.length;
       this.stat3 = totalTareas;
       this.stat4 = tareasCompletadas;
     } else {
       const pendientes = totalTareas - tareasCompletadas;
       const progresoGeneral = totalTareas > 0 ? Math.round((tareasCompletadas / totalTareas) * 100) : 0;
-      this.stat1 = this.canvasList.length; 
+      this.stat1 = this.canvasList.length;
       this.stat2 = pendientes;
       this.stat3 = tareasCompletadas;
       this.stat4 = `${progresoGeneral}%`;
@@ -276,7 +276,7 @@ export class Inicio implements OnInit {
     }
   }
 
- crearCanvas(event: Event) {
+  crearCanvas(event: Event) {
     event.preventDefault();
     this.limpiarAlertasCanvas();
     this.cdr.detectChanges();
@@ -309,10 +309,10 @@ export class Inicio implements OnInit {
         return;
       }
       payload.tipoCanvas = { tipCanvas: this.nuevoCanvas.tipCanvas, desTipCanvas: "Plantilla", vigente: 1 };
-      
+
       // Enviamos el array vacío, el Factory de Java (tu SC_EtapaPlantillaFactory) se encargará de llenarlo
-      payload.etapasPersonalizadas = []; 
-      
+      payload.etapasPersonalizadas = [];
+
     } else {
       const etapasValidas = this.etapasPersonalizadas.filter((e: any) => e.nomEtapa.trim() !== '');
       if (etapasValidas.length === 0) {
@@ -320,9 +320,9 @@ export class Inicio implements OnInit {
         this.cdr.detectChanges();
         return;
       }
-      
+
       payload.tipoCanvas = { tipCanvas: 'F', desTipCanvas: "Libre", vigente: 1 };
-      
+
       // 2. ¡DEVOLVEMOS LAS ETAPAS AL PAYLOAD! Spring Boot las guardará en cascada
       payload.etapasPersonalizadas = etapasValidas.map((e: any, i: number) => ({
         nomEtapa: e.nomEtapa.trim(),
@@ -344,8 +344,8 @@ export class Inicio implements OnInit {
 
         // Cierra el modal automáticamente después de 2 segundos
         setTimeout(() => {
-            this.cerrarModalCrearCanvas();
-            this.cargarDatosIniciales();
+          this.cerrarModalCrearCanvas();
+          this.cargarDatosIniciales();
         }, 2000);
       },
       error: (err) => {
@@ -369,16 +369,16 @@ export class Inicio implements OnInit {
           // Fallback por defecto
           this.errorCanvas = "Error inesperado al crear el canvas. Revisa tu conexión.";
         }
-        
+
         this.cdr.detectChanges();
       }
     });
   }
 
   editarCanvas(canvas: any) {
-    this.canvasEditando = { 
-      ...canvas, 
-      codPersona: canvas.codPersona || '' 
+    this.canvasEditando = {
+      ...canvas,
+      codPersona: canvas.codPersona || ''
     };
     this.errorEditarCanvas = '';
     this.exitoEditarCanvas = '';

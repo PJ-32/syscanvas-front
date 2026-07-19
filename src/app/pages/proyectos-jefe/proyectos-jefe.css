@@ -10,6 +10,7 @@
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -20,6 +21,7 @@
     from {
         transform: translateX(100%);
     }
+
     to {
         transform: translateX(0);
     }
@@ -153,9 +155,9 @@
     flex-direction: column;
     height: 100%;
     position: relative;
-    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), 
-                box-shadow 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), 
-                border-color 0.2s ease;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+        border-color 0.2s ease;
 }
 
 .project-card:hover {
@@ -283,9 +285,11 @@
 .progreso-bajo {
     stroke: var(--error);
 }
+
 .progreso-medio {
     stroke: var(--warning);
 }
+
 .progreso-alto {
     stroke: var(--success);
 }
@@ -847,8 +851,13 @@
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 /* Responsive details */
@@ -856,21 +865,21 @@
     .filters-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .workspace-header {
         flex-direction: column;
         align-items: flex-start;
     }
-    
+
     .btn-sync {
         width: 100%;
         justify-content: center;
     }
-    
+
     .kpis-row {
         grid-template-columns: 1fr;
     }
-    
+
     .drawer-panel {
         width: 100%;
     }

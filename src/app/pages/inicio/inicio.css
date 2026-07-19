@@ -48,6 +48,7 @@
 .stat-blue {
     border-bottom: 4px solid #3b82f6 !important;
 }
+
 .stat-blue .stat-icon-circle {
     background-color: rgba(59, 130, 246, 0.1);
     color: #3b82f6;
@@ -56,6 +57,7 @@
 .stat-purple {
     border-bottom: 4px solid var(--primary) !important;
 }
+
 .stat-purple .stat-icon-circle {
     background-color: rgba(146, 146, 219, 0.1);
     color: var(--primary);
@@ -64,6 +66,7 @@
 .stat-cyan {
     border-bottom: 4px solid #06b6d4 !important;
 }
+
 .stat-cyan .stat-icon-circle {
     background-color: rgba(6, 182, 212, 0.1);
     color: #06b6d4;
@@ -72,6 +75,7 @@
 .stat-green {
     border-bottom: 4px solid var(--success) !important;
 }
+
 .stat-green .stat-icon-circle {
     background-color: rgba(16, 185, 129, 0.1);
     color: var(--success);
@@ -170,12 +174,12 @@
         align-items: stretch;
         padding: var(--spacing-md);
     }
-    
+
     .filters-bar .filter-item {
         width: 100%;
         flex: none;
     }
-    
+
     .filters-bar .btn-clear-filters {
         width: 100%;
     }
@@ -224,6 +228,7 @@
     outline: none;
     box-shadow: 0 0 0 3px rgba(162, 123, 255, 0.25);
 }
+
 /* ==========================================
    TÍTULO DEL CANVAS – DISEÑO PREMIUM
    ========================================== */
@@ -250,6 +255,7 @@
     font-weight: 700;
     color: var(--text-primary);
 }
+
 /* === CANVAS CARD (para jefe) === */
 .canvas-card {
     background: var(--surface);
@@ -389,6 +395,7 @@
     font-size: 14px;
     color: var(--text-secondary);
 }
+
 .acciones-canvas {
     display: flex;
     gap: 10px;
@@ -400,23 +407,24 @@
 
 /* Agregamos una clase auxiliar al contenedor de los botones de Inicio */
 .responsive-header-actions {
-    display: flex; 
+    display: flex;
     gap: 10px;
 }
 
 @media (max-width: 768px) {
+
     /* 1. Apilamos el título y los botones */
     .card-header {
         flex-direction: column !important;
         gap: 16px;
     }
-    
+
     /* 2. Invertimos el orden de los botones ("Crear Canvas" arriba) */
     .responsive-header-actions {
-        flex-direction: column-reverse; 
+        flex-direction: column-reverse;
         width: 100%;
     }
-    
+
     /* 3. Estiramos los botones de Inicio en móviles */
     .responsive-header-actions .btn {
         width: 100%;
@@ -426,7 +434,9 @@
 }
 
 /* Quick Actions Button Outline Styles */
-.btn-edit-canvas, .btn-toggle-canvas, .btn-delete-canvas {
+.btn-edit-canvas,
+.btn-toggle-canvas,
+.btn-delete-canvas {
     background: transparent !important;
     border: 1px solid #e2e8f0 !important;
     color: #64748b !important;

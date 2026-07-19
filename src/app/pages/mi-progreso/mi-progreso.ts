@@ -60,7 +60,7 @@ export class MiProgresoComponent implements OnInit, OnDestroy, AfterViewInit {
     private historialService: HistorialService,
     private router: Router,
     private cdr: ChangeDetectorRef
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.rolUsuario = localStorage.getItem('rol') || '';
@@ -145,14 +145,14 @@ export class MiProgresoComponent implements OnInit, OnDestroy, AfterViewInit {
       return;
     }
 
-    const canvasDetalles$ = this.canvasList.map(c => 
+    const canvasDetalles$ = this.canvasList.map(c =>
       this.canvasService.obtenerCanvasPorId(c.codCanvas).pipe(catchError(() => of(c)))
     );
 
     forkJoin(canvasDetalles$).subscribe({
       next: (detalles) => {
         const canvasConEtapas = detalles;
-        
+
         // Activar vista
         this.datosCargados = true;
         this.cdr.detectChanges();
@@ -182,8 +182,8 @@ export class MiProgresoComponent implements OnInit, OnDestroy, AfterViewInit {
     this.kpiCanvasActivos = this.canvasList.length;
 
     const totalTareas = this.tareasList.length;
-    this.kpiProgresoPromedio = totalTareas > 0 
-      ? Math.round((this.kpiTareasCompletadas / totalTareas) * 100) 
+    this.kpiProgresoPromedio = totalTareas > 0
+      ? Math.round((this.kpiTareasCompletadas / totalTareas) * 100)
       : 0;
   }
 
@@ -379,7 +379,7 @@ export class MiProgresoComponent implements OnInit, OnDestroy, AfterViewInit {
           tooltip: {
             enabled: !isNoData,
             callbacks: {
-              label: function(context) {
+              label: function (context) {
                 const val = context.raw;
                 return ` Tareas: ${val}`;
               }

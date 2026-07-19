@@ -19,12 +19,12 @@ import { Empleado } from '../../core/models/empleado.model';
   styleUrls: ['./proyectos-jefe.css']
 })
 export class ProyectosJefeComponent implements OnInit {
-  
+
   // Variables de Sesión
   rolUsuario: string = '';
   nombreUsuario: string = 'Usuario';
   cargando: boolean = false;
-  
+
   // Listas de Datos Globales
   proyectosList: Proyecto[] = [];
   proyectosFiltrados: Proyecto[] = [];
@@ -53,7 +53,7 @@ export class ProyectosJefeComponent implements OnInit {
     private empleadoService: EmpleadoService,
     private cdr: ChangeDetectorRef,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.rolUsuario = localStorage.getItem('rol') || '';
@@ -67,7 +67,7 @@ export class ProyectosJefeComponent implements OnInit {
   inicializarVista() {
     this.cargando = true;
     this.cdr.detectChanges();
-    
+
     // Carga paralela de Proyectos, Canvas y Empleados
     const proyectos$ = this.proyectoService.obtenerProyectos(0, 100).pipe(catchError(() => of([])));
     const canvas$ = this.canvasService.obtenerCanvas(0, 200).pipe(catchError(() => of([])));
@@ -86,7 +86,7 @@ export class ProyectosJefeComponent implements OnInit {
         // Procesar proyectos y calcular estadísticas dinámicas
         this.procesarMetricasProyectos();
         this.aplicarFiltros();
-        
+
         this.cargando = false;
         this.cdr.detectChanges();
       },
@@ -102,10 +102,10 @@ export class ProyectosJefeComponent implements OnInit {
     this.proyectosList.forEach(p => {
       const canvasProyecto = this.canvasList.filter(c => c.codPyto === p.codPyto);
       p.totalCanvas = canvasProyecto.length;
-      
+
       const totalTareas = canvasProyecto.reduce((sum, c) => sum + (c.totalTareas || 0), 0);
       const tareasCompletadas = canvasProyecto.reduce((sum, c) => sum + (c.tareasCompletadas || 0), 0);
-      
+
       p.totalTareas = totalTareas;
       p.tareasCompletadas = tareasCompletadas;
       p.progreso = totalTareas > 0 ? Math.round((tareasCompletadas / totalTareas) * 100) : 0;
@@ -116,7 +116,7 @@ export class ProyectosJefeComponent implements OnInit {
     this.proyectosFiltrados = this.proyectosList.filter(p => {
       // Filtro de Texto (Nombre)
       const coincideTexto = !this.filtroNombre || p.nomPyto.toLowerCase().includes(this.filtroNombre.toLowerCase());
-      
+
       // Filtro de Estado (Activos: vigente = 1, Inactivos: vigente = 0, Todos: '')
       let coincideEstado = true;
       if (this.filtroEstado !== '') {
@@ -140,7 +140,7 @@ export class ProyectosJefeComponent implements OnInit {
   abrirEspacioTrabajo(proyecto: any) {
     this.proyectoSeleccionado = proyecto;
     this.tabActivo = 'canvas';
-    
+
     // Filtrar los canvas de este proyecto y precalcular su progreso individual
     this.canvasProyecto = this.canvasList.filter(c => c.codPyto === proyecto.codPyto).map(c => {
       const total = c.totalTareas || 0;
