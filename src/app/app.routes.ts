@@ -6,6 +6,7 @@ import { PerfilComponent } from './pages/perfil/perfil';
 import { CanvasDetalle } from './pages/canvas-detalle/canvas-detalle';
 import { ProyectosJefeComponent } from './pages/proyectos-jefe/proyectos-jefe';
 import { ReportesComponent } from './pages/reportes/reportes';
+import { MiProgresoComponent } from './pages/mi-progreso/mi-progreso';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },  
@@ -16,6 +17,7 @@ export const routes: Routes = [
   { path: 'canvas-detalle', component: CanvasDetalle },
   { path: 'proyectos-jefe', component: ProyectosJefeComponent },
   { path: 'reportes', component: ReportesComponent },
+  { path: 'mi-progreso', component: MiProgresoComponent },
 
  // Carga el login por defecto
   { path: '**', redirectTo: '/login' }
