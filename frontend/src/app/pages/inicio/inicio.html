@@ -1,0 +1,444 @@
+<div class="container">
+
+    <!-- SALUDO Y FECHA -->
+    <div class="mb-4">
+        <div class="text-gray" style="text-transform: capitalize;">{{ fechaActual }}</div>
+        <h1 class="text-xl font-bold mb-2">
+            Buenas tardes, {{ nombreUsuario }}
+            <span class="iconify greeting" data-icon="noto:waving-hand"></span>
+        </h1>
+        <p class="text-gray" style="font-style: italic;">¿Qué deseas hacer hoy?</p>
+    </div>
+
+    <!-- ESTADÍSTICAS -->
+    <div class="stats-row">
+        @if (rolUsuario === 'ROLE_JEFE') {
+        <div class="stat-card stat-blue">
+            <div class="stat-info">
+                <div class="stat-value">{{ stat1 }}</div>
+                <div class="stat-label">Proyectos Activos</div>
+            </div>
+            <div class="stat-icon-circle">
+                <i class="fa-solid fa-briefcase"></i>
+            </div>
+        </div>
+        <div class="stat-card stat-purple">
+            <div class="stat-info">
+                <div class="stat-value">{{ stat2 }}</div>
+                <div class="stat-label">Canvas Creados</div>
+            </div>
+            <div class="stat-icon-circle">
+                <i class="fa-solid fa-folder-open"></i>
+            </div>
+        </div>
+        <div class="stat-card stat-cyan">
+            <div class="stat-info">
+                <div class="stat-value">{{ stat3 }}</div>
+                <div class="stat-label">Total de Tareas</div>
+            </div>
+            <div class="stat-icon-circle">
+                <i class="fa-solid fa-list-check"></i>
+            </div>
+        </div>
+        <div class="stat-card stat-green">
+            <div class="stat-info">
+                <div class="stat-value">{{ stat4 }}</div>
+                <div class="stat-label">Tareas Finalizadas</div>
+            </div>
+            <div class="stat-icon-circle">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+        </div>
+        }
+        @else {
+        <div class="stat-card stat-blue">
+            <div class="stat-info">
+                <div class="stat-value">{{ stat1 }}</div>
+                <div class="stat-label">Canvas Asignados</div>
+            </div>
+            <div class="stat-icon-circle">
+                <i class="fa-solid fa-folder-tree"></i>
+            </div>
+        </div>
+        <div class="stat-card stat-purple">
+            <div class="stat-info">
+                <div class="stat-value">{{ stat2 }}</div>
+                <div class="stat-label">Tareas Pendientes</div>
+            </div>
+            <div class="stat-icon-circle">
+                <i class="fa-solid fa-clock"></i>
+            </div>
+        </div>
+        <div class="stat-card stat-cyan">
+            <div class="stat-info">
+                <div class="stat-value">{{ stat3 }}</div>
+                <div class="stat-label">Tareas Completadas</div>
+            </div>
+            <div class="stat-icon-circle">
+                <i class="fa-solid fa-list-check"></i>
+            </div>
+        </div>
+        <div class="stat-card stat-green">
+            <div class="stat-info">
+                <div class="stat-value">{{ stat4 }}</div>
+                <div class="stat-label">Progreso General</div>
+            </div>
+            <div class="stat-icon-circle">
+                <i class="fa-solid fa-chart-line"></i>
+            </div>
+        </div>
+        }
+    </div>
+
+    <!-- PANEL DE CONTROL / TRABAJO -->
+    <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <h1 class="mb-2">
+                    {{ rolUsuario === 'ROLE_JEFE' ? 'Panel de Control' : 'Panel de Trabajo' }}
+                </h1>
+                <p class="text-gray">
+                    @if (rolUsuario === 'ROLE_JEFE') {
+                    Gestiona tus proyectos y canvas. Controla el acceso de edición para tu equipo.
+                    } @else {
+                    Gestiona tus tareas asignadas. Solo puedes editar cuando el canvas esté desbloqueado.
+                    }
+                </p>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+                <button class="btn btn-secondary" (click)="cargarDatosIniciales()">
+                    <span class="container-icon"><i class="fa-solid fa-refresh"></i></span>
+                    Actualizar
+                </button>
+
+                @if (rolUsuario === 'ROLE_JEFE') {
+                <button class="btn btn-primary" (click)="abrirModalCrearCanvas()">
+                    <span class="container-icon"><i class="fa-solid fa-plus"></i></span>
+                    Crear Canvas
+                </button>
+                }
+            </div>
+        </div>
+
+        <div id="alert-container"></div>
+
+        <!-- FILTROS UNIFICADOS -->
+        <div class="filters-bar">
+            <!-- Buscador por Texto (Para Ambos Roles) -->
+            <div class="filter-item search-item">
+                <i class="fa-solid fa-magnifying-glass filter-icon"></i>
+                <input type="text" class="filter-control" placeholder="Buscar canvas por nombre..."
+                    [(ngModel)]="filtroNombreCanvas" (input)="aplicarFiltros()">
+            </div>
+
+            <!-- Filtrar por Proyecto (Solo ROLE_JEFE) -->
+            @if (rolUsuario === 'ROLE_JEFE') {
+            <div class="filter-item select-item">
+                <i class="fa-solid fa-folder-tree filter-icon"></i>
+                <select class="filter-control" [(ngModel)]="filtroProyecto" (change)="aplicarFiltros()">
+                    <option value="">Todos los proyectos</option>
+                    <option value="SIN_PROYECTO">Sin proyecto asignado</option>
+                    @for (proyecto of proyectosList; track proyecto.codPyto) {
+                    <option [value]="proyecto.codPyto">{{ proyecto.nomPyto }}</option>
+                    }
+                </select>
+            </div>
+            }
+
+            <!-- Filtrar por Estado (Para Ambos Roles) -->
+            <div class="filter-item select-item">
+                <i class="fa-solid fa-filter filter-icon"></i>
+                <select class="filter-control" [(ngModel)]="filtroEstado" (change)="aplicarFiltros()">
+                    <option value="">Todos los estados</option>
+                    <option value="true">Editable</option>
+                    <option value="false">Bloqueado</option>
+                </select>
+            </div>
+
+            <!-- Botón Limpiar Filtros -->
+            <button class="btn-clear-filters" (click)="limpiarFiltros()" title="Limpiar Filtros">
+                <i class="fa-solid fa-filter-circle-xmark"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- LISTA DE CANVAS -->
+    @if (cargando) {
+    <div class="loading">
+        <div class="spinner"></div>
+        <p class="mt-2">Cargando canvas...</p>
+    </div>
+    } @else if (canvasFiltrados.length === 0) {
+    <div class="empty-state">
+        <span class="iconify empty-state-icon" data-icon="noto:clipboard" style="font-size: 40px;"></span>
+        <div class="empty-state-text">No se encontraron canvas</div>
+    </div>
+    } @else {
+    <div class="grid grid-3" id="canvas-list">
+
+        @for (canvas of canvasFiltrados; track canvas.codCanvas) {
+
+        <div class="canvas-card p-4">
+            <div class="canvas-card-header"
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div class="canvas-card-header-text">
+                    <h2 class="canvas-card-title font-bold text-lg m-0" [title]="canvas.nomCanvas">{{ canvas.nomCanvas
+                        }}</h2>
+                    <div class="canvas-card-meta text-xs text-gray-500 mt-1 canvas-project-tag"
+                        [title]="obtenerNombreProyecto(canvas.codPyto)">
+                        📁 {{ obtenerNombreProyecto(canvas.codPyto) }}
+                    </div>
+                </div>
+                <span class="badge" [ngClass]="canvas.editable ? 'badge-success-pastel' : 'badge-error-pastel'">
+                    {{ canvas.editable ? '✏️ Editable' : '🔒 Bloqueado' }}
+                </span>
+            </div>
+
+            <div class="canvas-card-body">
+                <p class="text-sm mb-2 canvas-descripcion" [class.text-muted-italic]="!canvas.desCanvas">
+                    {{ canvas.desCanvas || 'Sin descripción...' }}
+                </p>
+
+                <div class="mb-2">
+                    <div class="text-sm text-gray mb-1">
+                        Progreso: <span class="progreso-texto">{{ canvas.porcentajeProgreso || 0 | number:'1.0-0'
+                            }}</span>%
+                    </div>
+                    <div class="progress-bar bg-gray-200 rounded h-2">
+                        <div class="progress-fill bg-blue-500 h-2 rounded"
+                            [style.width.%]="canvas.porcentajeProgreso || 0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-xs text-gray mt-2" style="border-top: 1px solid #eee; padding-top: 10px;">
+                    <span class="iconify info" data-icon="mdi:clipboard-text"></span>
+                    <span class="total-tareas font-bold">{{ canvas.totalTareas || 0 }}</span> tareas
+                    •
+                    <span class="iconify info" data-icon="mdi:check-all"></span>
+                    <span class="tareas-completadas font-bold">{{ canvas.tareasCompletadas || 0 }}</span> completadas
+                </div>
+            </div>
+
+            <div class="canvas-card-footer mt-3"
+                style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <div style="display: flex; gap: 8px;">
+                    @if (rolUsuario === 'ROLE_JEFE') {
+                    <button class="btn btn-secondary btn-sm btn-edit-canvas" (click)="editarCanvas(canvas)"
+                        title="Editar Canvas" style="padding: 6px 10px;">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button class="btn btn-sm btn-toggle-canvas"
+                        [ngClass]="canvas.editable ? 'btn-warning-outline' : 'btn-success-outline'"
+                        (click)="toggleBloqueoCanvas(canvas)"
+                        [title]="canvas.editable ? 'Bloquear Canvas' : 'Desbloquear Canvas'" style="padding: 6px 10px;">
+                        <i class="fa-solid" [class.fa-lock]="canvas.editable"
+                            [class.fa-lock-open]="!canvas.editable"></i>
+                    </button>
+                    <button class="btn btn-danger btn-sm btn-delete-canvas" (click)="eliminarCanvas(canvas.codCanvas)"
+                        title="Eliminar Canvas" style="padding: 6px 10px;">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                    }
+                </div>
+                <button class="btn btn-primary btn-sm btn-ver" (click)="verCanvas(canvas.codCanvas)">
+                    <i class="fa-solid fa-eye"></i> Ver
+                </button>
+            </div>
+        </div>
+
+        }
+    </div>
+    }
+</div>
+
+<!-- ==========================================
+     MODAL CREAR CANVAS (Oculto por defecto)
+     ========================================== -->
+<div class="modal" [class.show]="modalCrearAbierto">
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header">
+            <h2 class="modal-title">Crear Nuevo Canvas</h2>
+            <button class="modal-close" (click)="cerrarModalCrearCanvas()">&times;</button>
+        </div>
+
+        @if (!modoCreacion) {
+        <!-- PASO 1: Selección de Modo -->
+        <p class="text-gray mb-4">Seleccione una opción para comenzar</p>
+        <div class="grid grid-2" style="margin-bottom: 24px;">
+            <div class="option-card" (click)="seleccionarOpcion('plantilla')"
+                style="cursor:pointer; border: 1px solid var(--border); padding: 15px; border-radius: 8px;">
+                <span class="iconify" data-icon="noto:bookmark-tabs"
+                    style="font-size: 32px; margin-bottom: 10px;"></span>
+                <div class="font-bold">Usar una plantilla</div>
+                <div class="text-sm text-gray mt-1">Estructura predefinida (Scrum, Kanban, etc).</div>
+            </div>
+
+            <div class="option-card" (click)="seleccionarOpcion('blanco')"
+                style="cursor:pointer; border: 1px solid var(--border); padding: 15px; border-radius: 8px;">
+                <span class="iconify" data-icon="noto:page-facing-up"
+                    style="font-size: 32px; margin-bottom: 10px;"></span>
+                <div class="font-bold">Proyecto en blanco</div>
+                <div class="text-sm text-gray mt-1">Crea tus propias etapas desde cero.</div>
+            </div>
+        </div>
+        } @else {
+        <!-- PASO 2: Formulario -->
+        <form (ngSubmit)="crearCanvas($event)">
+
+            <!-- Mensajes de Alerta -->
+            @if (errorCanvas) {
+            <div class="alert alert-error show" style="margin-bottom: 15px;">{{ errorCanvas }}</div>
+            }
+            @if (exitoCanvas) {
+            <div class="alert alert-success show" style="margin-bottom: 15px;">{{ exitoCanvas }}</div>
+            }
+
+            <div class="form-group">
+                <label class="form-label">Nombre del Canvas *</label>
+                <input type="text" class="form-control" placeholder="Ej: Canvas Desarrollo App Móvil"
+                    [(ngModel)]="nuevoCanvas.nomCanvas" name="nomCanvas" required maxlength="200">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Descripción</label>
+                <textarea class="form-control" rows="3" placeholder="Descripción opcional"
+                    [(ngModel)]="nuevoCanvas.desCanvas" name="desCanvas" maxlength="1000"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Vincular a un proyecto</label>
+                <div style="display: flex; gap: 15px;">
+                    <label>
+                        <input type="radio" name="vincular" value="SI" [(ngModel)]="nuevoCanvas.vincularProyecto"
+                            (change)="cambioVincularProyecto()"> Sí
+                    </label>
+                    <label>
+                        <input type="radio" name="vincular" value="NO" [(ngModel)]="nuevoCanvas.vincularProyecto"
+                            (change)="cambioVincularProyecto()"> No
+                    </label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Proyecto</label>
+                <select class="form-control" [(ngModel)]="nuevoCanvas.codPyto" name="codPyto"
+                    [disabled]="nuevoCanvas.vincularProyecto === 'NO'"
+                    [required]="nuevoCanvas.vincularProyecto === 'SI'">
+                    <option value="">Seleccione un proyecto</option>
+                    @for (pyto of proyectosList; track pyto.codPyto) {
+                    <option [value]="pyto.codPyto">{{ pyto.nomPyto }}</option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Asignar Analista</label>
+                <select class="form-control" [(ngModel)]="nuevoCanvas.codPersona" name="codPersona">
+                    <option value="">Sin asignar</option>
+                    @for (emp of empleadosList; track emp.codPersona) {
+                    <option [value]="emp.codPersona">{{ emp.nombre }} {{ emp.apellido }}</option>
+                    }
+                </select>
+            </div>
+
+            @if (modoCreacion === 'plantilla') {
+            <div class="form-group">
+                <label class="form-label">Tipo de Canvas (Plantilla) *</label>
+                <select class="form-control" [(ngModel)]="nuevoCanvas.tipCanvas" name="tipCanvas" required>
+                    <option value="">Seleccione un tipo</option>
+                    @for (tipo of tiposCanvasList; track tipo.tipCanvas) {
+                    <option [value]="tipo.tipCanvas">{{ tipo.desTipCanvas }}</option>
+                    }
+                </select>
+            </div>
+            } @else {
+            <div class="form-group">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <label class="form-label m-0">Etapas Personalizadas</label>
+                    <button type="button" class="btn btn-secondary btn-sm" (click)="agregarEtapa()">
+                        <i class="fa-solid fa-plus"></i> Agregar Etapa
+                    </button>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 10px;">
+                    @for (etapa of etapasPersonalizadas; track $index) {
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" class="form-control" placeholder="Nombre de la etapa {{ $index + 1 }}"
+                            [(ngModel)]="etapa.nomEtapa" name="etapa_{{$index}}" required>
+                        <button type="button" class="btn btn-danger btn-sm" (click)="eliminarEtapa($index)">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                    }
+                </div>
+            </div>
+            }
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" (click)="volverPaso1()">
+                    <i class="fa-solid fa-arrow-left"></i> Volver
+                </button>
+                <button type="submit" class="btn btn-primary" [disabled]="guardandoCanvas">
+                    <i class="fa-solid fa-check"></i> {{ guardandoCanvas ? 'Creando...' : 'Crear Canvas' }}
+                </button>
+            </div>
+        </form>
+        }
+    </div>
+</div>
+
+<!-- ==========================================
+     MODAL EDITAR CANVAS (Jefe de Proyecto)
+     ========================================== -->
+<div class="modal" [class.show]="modalEditarAbierto">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h2 class="modal-title">Editar Canvas</h2>
+            <button class="modal-close" (click)="cerrarModalEditarCanvas()">&times;</button>
+        </div>
+
+        <form (ngSubmit)="guardarEdicionCanvas($event)">
+
+            <!-- Mensajes de Alerta -->
+            @if (errorEditarCanvas) {
+            <div class="alert alert-error show" style="margin-bottom: 15px;">{{ errorEditarCanvas }}</div>
+            }
+            @if (exitoEditarCanvas) {
+            <div class="alert alert-success show" style="margin-bottom: 15px;">{{ exitoEditarCanvas }}</div>
+            }
+
+            <div class="form-group">
+                <label class="form-label">Nombre del Canvas *</label>
+                <input type="text" class="form-control" placeholder="Ej: Canvas Desarrollo App Móvil"
+                    [(ngModel)]="canvasEditando.nomCanvas" name="editNomCanvas" required maxlength="200">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Descripción</label>
+                <textarea class="form-control" rows="3" placeholder="Descripción opcional"
+                    [(ngModel)]="canvasEditando.desCanvas" name="editDesCanvas" maxlength="1000"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Asignar Analista</label>
+                <select class="form-control" [(ngModel)]="canvasEditando.codPersona" name="editCodPersona">
+                    <option value="">Sin asignar</option>
+                    @for (emp of empleadosList; track emp.codPersona) {
+                    <option [value]="emp.codPersona">{{ emp.nombre }} {{ emp.apellido }}</option>
+                    }
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button type="button" class="btn btn-secondary" (click)="cerrarModalEditarCanvas()">
+                    Cancelar
+                </button>
+                <button type="submit" class="btn btn-primary" [disabled]="guardandoEdicion">
+                    <i class="fa-solid fa-check"></i> {{ guardandoEdicion ? 'Guardando...' : 'Guardar Cambios' }}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

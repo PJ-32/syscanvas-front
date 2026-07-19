@@ -1,0 +1,54 @@
+<aside class="sidebar" [class.collapsed]="estaColapsado">
+    <div class="sidebar-header">
+        <button class="hamburger-btn" (click)="toggleSidebar()">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+
+        <span class="iconify sidebar-logo" data-icon="noto:card-index-dividers"></span>
+        
+        <div class="sidebar-title">SYSCANVAS</div>
+    </div>
+
+    <nav class="sidebar-menu">
+        <a routerLink="/inicio" routerLinkActive="active" class="menu-item">
+            <span class="menu-icon"><i class="fa-solid fa-house"></i></span>
+            <span class="menu-text">Inicio</span>
+        </a>
+
+        @if (rolUsuario === 'ROLE_JEFE') {
+            <a [routerLink]="['/inicio']" [queryParams]="{ crear: 'true' }" class="menu-item">
+                <span class="menu-icon"><i class="fa-solid fa-plus"></i></span>
+                <span class="menu-text">Crear Canvas</span>
+            </a>
+
+            <a routerLink="/proyectos-jefe" routerLinkActive="active" class="menu-item">
+                <span class="menu-icon"><i class="fa-solid fa-chart-column"></i></span>
+                <span class="menu-text">Proyectos</span>
+            </a>
+
+            <a routerLink="/reportes" routerLinkActive="active" class="menu-item">
+                <span class="menu-icon"><i class="fa-solid fa-clipboard-list"></i></span>
+                <span class="menu-text">Reportes</span>
+            </a>
+        }
+
+        @if (rolUsuario === 'ROLE_ANALISTA') {
+            <a routerLink="/mi-progreso" routerLinkActive="active" class="menu-item">
+                <span class="menu-icon"><i class="fa-solid fa-chart-line"></i></span>
+                <span class="menu-text">Mi Progreso</span>
+            </a>
+        }
+        
+        <a routerLink="/perfil" routerLinkActive="active" class="menu-item">
+            <span class="menu-icon"><i class="fa-solid fa-user"></i></span>
+            <span class="menu-text">Mi Perfil</span>
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <a (click)="logout()" class="menu-item-logout">
+            <span class="menu-icon"><i class="fa-solid fa-right-from-bracket"></i></span>
+            <span class="menu-text">Cerrar Sesión</span>
+        </a>
+    </div>
+</aside>

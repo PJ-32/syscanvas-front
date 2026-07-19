@@ -1,0 +1,256 @@
+<div class="container" [class.modo-bloqueado]="canvasBloqueado">
+    
+    @if (toastMensaje) {
+        <div class="toast show" [style.borderLeftColor]="toastTipo === 'error' ? '#ff9aa2' : '#7dcfb6'">
+            {{ toastMensaje }}
+        </div>
+    }
+
+    <header class="canvas-detail-header" style="margin-bottom: 24px;">
+        <div class="header-row-main" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+            <div class="header-left">
+                <h1 class="canvas-title" style="margin: 0; font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 10px;">
+                    <span class="folder-icon">📁</span>
+                    {{ canvasActual?.nomCanvas || 'Cargando...' }}
+                </h1>
+            </div>
+
+            <div class="header-right" style="display: flex; align-items: center; gap: 12px;">
+                @if (rolUsuario === 'ROLE_JEFE') {
+                    <button class="badge-button badge" 
+                            [ngClass]="canvasBloqueado ? 'badge-error-pastel' : 'badge-success-pastel'" 
+                            (click)="toggleBloqueo()" 
+                            [title]="canvasBloqueado ? 'Clic para desbloquear canvas' : 'Clic para bloquear canvas'"
+                            style="cursor: pointer; border: none;">
+                        {{ canvasBloqueado ? '🔒 Bloqueado' : '✏️ Editable' }}
+                    </button>
+                } @else {
+                    <span class="badge" [ngClass]="canvasBloqueado ? 'badge-error-pastel' : 'badge-success-pastel'">
+                        {{ canvasBloqueado ? '🔒 Bloqueado' : '✏️ Editable' }}
+                    </span>
+                }
+                
+                <button class="btn btn-primary btn-nueva-tarea" (click)="abrirModalCrearTarea()" [disabled]="canvasBloqueado">
+                    <i class="fa-solid fa-plus"></i> Nueva tarea
+                </button>
+            </div>
+        </div>
+
+        <div class="header-row-secondary" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; margin-bottom: 16px;">
+            <div class="secondary-actions-bar">
+                <button class="btn btn-outline" (click)="exportarCanvas()" title="Exportar Canvas">
+                    <i class="fa fa-download"></i> Exportar
+                </button>
+                <label class="btn btn-outline btn-label" style="cursor: pointer; margin: 0;" title="Importar Canvas">
+                    <i class="fa fa-upload"></i> Importar
+                    <input type="file" accept=".json" style="display: none;" (change)="importarCanvas($event)" [disabled]="canvasBloqueado">
+                </label>
+                <button class="btn btn-outline" (click)="abrirHistorial()" title="Historial de Modificaciones">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Historial
+                </button>
+            </div>
+        </div>
+
+        <div class="progress-bar-container">
+            <div class="progress-bar-labels" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 13px; color: var(--text-secondary); font-weight: 600;">
+                <span class="progress-title" style="color: var(--text-primary);">Progreso General</span>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <span class="progress-counter" style="background: #f1f5f9; padding: 2px 8px; border-radius: 12px; font-size: 11px;">
+                        {{ canvasActual?.tareasCompletadas || 0 }} de {{ canvasActual?.totalTareas || 0 }} tareas
+                    </span>
+                    <span class="progress-pct" style="color: var(--primary); font-size: 14px; font-weight: 700;">
+                        {{ canvasActual?.porcentajeProgreso || 0 | number:'1.0-0' }}%
+                    </span>
+                </div>
+            </div>
+            <div class="progress-track" style="background: #e2e8f0; height: 6px; border-radius: 10px; overflow: hidden; width: 100%;">
+                <div class="progress-fill-gradient" 
+                     [style.width.%]="canvasActual?.porcentajeProgreso || 0"
+                     style="height: 100%; border-radius: 10px; transition: width 0.3s ease;">
+                </div>
+            </div>
+        </div>
+    </header>
+
+    @if (canvasActual) {
+        <main class="stages-wrapper" [class.bloqueado]="canvasBloqueado">
+            @for (etapa of etapasGlobal; track etapa.codEtapa; let i = $index) {
+                <div class="stage-column">
+                    
+                    <div class="stage-header" [style.backgroundColor]="obtenerColorEtapa(i)">
+                        <span class="stage-title">{{ etapa.nomEtapa }}</span>
+                        <span class="stage-badge-count">{{ (etapa.tareas || []).length }}</span>
+                    </div>
+                    
+                    <div class="stage-tasks-body" 
+                         (dragover)="handleDragOver($event)" 
+                         (drop)="handleDrop($event, etapa.codEtapa)">
+                        
+                        @for (tarea of (etapa.tareas || []); track tarea.codTarea) {
+                            <div class="task-card" draggable="true" 
+                                 (dragstart)="handleDragStart($event, tarea)"
+                                 [class.completada]="tarea?.vigente === 0">
+                                
+                                <div class="task-title">
+                                    <strong>{{ tarea?.nomTarea || 'Sin nombre' }}</strong>
+                                </div>
+                                
+                                <div class="task-desc">
+                                    {{ (tarea?.desTarea?.length || 0) > 100 ? (tarea?.desTarea | slice:0:100) + '...' : (tarea?.desTarea || 'Sin descripción') }}
+                                </div>
+                                
+                                <div class="task-actions">
+                                    <button class="btn-task-action view" title="Ver Detalle" (click)="verTarea(tarea)">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                    <button class="btn-task-action edit" title="Editar Tarea" (click)="editarTarea(tarea)" [disabled]="canvasBloqueado">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+                                    <button class="btn-task-action delete" title="Eliminar Tarea" (click)="abrirEliminarTarea(tarea)" [disabled]="canvasBloqueado">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                    <button class="btn-task-action toggle" 
+                                            [title]="tarea?.vigente === 0 ? 'Reabrir Tarea' : 'Completar Tarea'" 
+                                            (click)="cambiarEstadoTarea(tarea)" 
+                                            [disabled]="canvasBloqueado">
+                                        <i class="fa-solid" [class.fa-rotate-left]="tarea?.vigente === 0" [class.fa-check]="tarea?.vigente !== 0"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        </main>
+    } @else {
+        <div class="loading-container">Cargando tablero...</div>
+    }
+
+</div>
+
+<div class="modal" [class.show]="modalTareaAbierto">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2 class="modal-title">Nueva tarea</h2>
+            <button class="modal-close" (click)="modalTareaAbierto = false">×</button>
+        </div>
+        <form (submit)="guardarTarea($event)">
+            <div class="form-group">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-control" [(ngModel)]="nuevaTarea.nomTarea" name="nomTarea" required />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Descripción</label>
+                <textarea class="form-control" rows="3" [(ngModel)]="nuevaTarea.desTarea" name="desTarea"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Etapa</label>
+                <select class="form-control" [(ngModel)]="nuevaTarea.codEtapa" name="codEtapa" required>
+                    <option value="">-- Seleccionar etapa --</option>
+                    @for (e of etapasGlobal; track e.codEtapa) {
+                        <option [value]="e.codEtapa">{{ e.nomEtapa }}</option>
+                    }
+                </select>
+            </div>
+            <div class="flex gap-2 mt-3">
+                <button type="button" class="btn btn-secondary" (click)="modalTareaAbierto = false">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal" [class.show]="modalVerAbierto">
+    @if (tareaSeleccionada) {
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">📄 Detalles de la Tarea</h2>
+                <button class="modal-close" (click)="modalVerAbierto = false">×</button>
+            </div>
+            <div class="mb-3">
+                <label class="font-bold text-gray-700">Nombre</label>
+                <p>{{ tareaSeleccionada.nomTarea }}</p>
+            </div>
+            <div class="mb-4">
+                <label class="font-bold text-gray-700">Descripción</label>
+                <p>{{ tareaSeleccionada.desTarea || 'Sin descripción' }}</p>
+            </div>
+            <div class="flex justify-end">
+                <button class="btn btn-secondary" (click)="modalVerAbierto = false">Cerrar</button>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="modal" [class.show]="modalEditarAbierto">
+    @if (tareaSeleccionada) {
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">✏️ Editar Tarea</h2>
+                <button class="modal-close" (click)="modalEditarAbierto = false">×</button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-control" [(ngModel)]="tareaSeleccionada.nomTarea" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Descripción</label>
+                <textarea class="form-control" rows="4" [(ngModel)]="tareaSeleccionada.desTarea"></textarea>
+            </div>
+            <div class="flex gap-2 mt-3 justify-end">
+                <button class="btn btn-secondary" (click)="modalEditarAbierto = false">Cancelar</button>
+                <button class="btn btn-primary" (click)="guardarEdicion()">Guardar cambios</button>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="modal" [class.show]="modalEliminarAbierto">
+    @if (tareaSeleccionada) {
+        <div class="modal-content text-center">
+            <div class="text-4xl mb-3">⚠️</div>
+            <h2 class="text-xl font-bold mb-3">Eliminar Tarea</h2>
+            <p class="mb-4 text-gray-600">¿Estás seguro de que deseas eliminar <strong>{{ tareaSeleccionada.nomTarea }}</strong>?<br>Esta acción no se puede deshacer.</p>
+            <div class="flex gap-2 justify-center">
+                <button class="btn btn-secondary" (click)="modalEliminarAbierto = false">Cancelar</button>
+                <button class="btn btn-danger" (click)="confirmarEliminacion()">Eliminar</button>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="modal" [class.show]="modalHistorialAbierto">
+    <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-header">
+            <h2 class="modal-title">📜 Historial de Modificaciones</h2>
+            <button class="modal-close" (click)="modalHistorialAbierto = false">×</button>
+        </div>
+        
+        <div style="max-height: 500px; overflow-y: auto; padding-right: 8px;">
+            @if (historial.length === 0) {
+                <p class="text-center text-gray my-4">Sin cambios registrados</p>
+            }
+            
+            @for (item of historial; track item.codHistorial) {
+                <div class="historial-item-card">
+                    
+                    <div class="historial-header-flex">
+                        <strong class="historial-accion-text">{{ item.accion }}</strong>
+                        <span class="historial-fecha-badge">{{ item.fecAccion | date:'medium' }}</span>
+                    </div>
+                    
+                    <p class="historial-detalle-text">{{ item.detalle }}</p>
+                    
+                    <div class="historial-usuario-badge">
+                        <i class="fa-solid fa-user"></i> Usuario: {{ item.codPersona }}
+                    </div>
+                    
+                </div>
+            }
+        </div>
+        
+        <div class="mt-4 flex justify-end">
+            <button class="btn btn-secondary" (click)="modalHistorialAbierto = false">Cerrar</button>
+        </div>
+    </div>
+</div>

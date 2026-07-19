@@ -1,0 +1,152 @@
+<div class="page-container">
+
+  <!-- CABECERA -->
+  <div class="dashboard-header">
+    <div class="header-title">
+      <h1>Mi Progreso y Productividad</h1>
+      <p>Monitorea tu rendimiento, avance de tareas y canvas asignados en tiempo real.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-sync-bi" (click)="sincronizarDatos()" [disabled]="!datosCargados"
+        title="Actualizar datos desde la base de datos">
+        <i class="fa-solid fa-arrows-rotate" [class.fa-spin]="!datosCargados"></i> Sincronizar
+      </button>
+    </div>
+  </div>
+
+  @if (datosCargados) {
+
+  <!-- TARJETAS KPI (Fila Superior) -->
+  <div class="kpis-grid">
+    <app-kpi-card title="Tareas Completadas" [value]="kpiTareasCompletadas" icon="fa-solid fa-circle-check"
+      borderColor="#3b82f6"></app-kpi-card>
+    <app-kpi-card title="Tareas Pendientes" [value]="kpiTareasPendientes" icon="fa-solid fa-clock"
+      borderColor="#9292DB"></app-kpi-card>
+    <app-kpi-card title="Progreso Promedio" [value]="kpiProgresoPromedio + '%'" icon="fa-solid fa-chart-line"
+      borderColor="#06b6d4"></app-kpi-card>
+    <app-kpi-card title="Canvas Activos" [value]="kpiCanvasActivos" icon="fa-solid fa-folder-open"
+      borderColor="#10b981"></app-kpi-card>
+  </div>
+
+  <!-- PANEL DE GRÁFICOS (Fila Central) -->
+  <div class="main-dashboard-grid">
+
+    <!-- Gráfico Izquierda: Productividad Semanal -->
+    <div class="chart-container-card">
+      <div class="card-header-bi">
+        <h3><i class="fa-solid fa-chart-area"></i> Productividad Semanal</h3>
+        <span class="card-subtitle-bi">Evolución de tus tareas completadas en las últimas 8 semanas</span>
+      </div>
+      <div class="chart-wrapper">
+        <canvas #chartProductividadCanvas></canvas>
+      </div>
+    </div>
+
+    <!-- Gráfico Derecha: Distribución de Tareas -->
+    <div class="chart-container-card">
+      <div class="card-header-bi">
+        <h3><i class="fa-solid fa-chart-pie"></i> Distribución de Tareas</h3>
+        <span class="card-subtitle-bi">Estado actual de tus tareas en todos los canvas</span>
+      </div>
+      <div class="chart-wrapper">
+        <canvas #chartDistribucionCanvas></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SECCIÓN INFERIOR: CANVAS Y ACTIVIDAD RECIENTE -->
+  <div class="bottom-dashboard-grid">
+
+    <!-- Canvas Asignados -->
+    <div class="panel-card">
+      <div class="panel-header">
+        <h3><i class="fa-solid fa-folder-tree"></i> Mis Canvas Asignados</h3>
+        <span class="badge badge-info-pastel">{{ canvasList.length }} Canvas</span>
+      </div>
+
+      @if (canvasList.length > 0) {
+      <div class="canvas-grid-bottom">
+        @for (canvas of canvasList; track canvas.codCanvas) {
+        <div class="canvas-card-bottom">
+          <div class="canvas-card-top-info">
+            <div class="canvas-card-title" [title]="canvas.nomCanvas">
+              {{ canvas.nomCanvas }}
+            </div>
+            <div class="canvas-card-project-tag" [title]="obtenerNombreProyecto(canvas.codPyto)">
+              📁 {{ obtenerNombreProyecto(canvas.codPyto) }}
+            </div>
+          </div>
+
+          <div class="canvas-card-desc" [class.text-muted-italic]="!canvas.desCanvas">
+            {{ canvas.desCanvas || 'Sin descripción disponible...' }}
+          </div>
+
+          <div>
+            <div class="canvas-card-stats">
+              <span>Avance:</span>
+              <strong>{{ obtenerPorcentajeCanvas(canvas) }}%</strong>
+            </div>
+            <div class="canvas-card-footer">
+              <button class="btn-open-canvas" (click)="abrirCanvas(canvas.codCanvas)">
+                Abrir Canvas <i class="fa-solid fa-arrow-right-long"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+      } @else {
+      <div class="empty-state">
+        <i class="fa-solid fa-folder-open empty-state-icon"></i>
+        <p>No tienes canvas asignados actualmente.</p>
+      </div>
+      }
+    </div>
+
+    <!-- Actividad Reciente -->
+    <div class="panel-card">
+      <div class="panel-header">
+        <h3><i class="fa-solid fa-clock-rotate-left"></i> Actividades Recientes</h3>
+        <span class="badge badge-purple-pastel">Historial</span>
+      </div>
+
+      @if (actividadesRecientes.length > 0) {
+      <div class="timeline">
+        @for (act of actividadesRecientes; track act.codHistorial) {
+        <div class="timeline-item">
+          <div class="timeline-badge" [ngClass]="obtenerClaseAccion(act.accion)">
+            <!-- Se selecciona el badge por acción -->
+          </div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <span class="timeline-action">{{ act.accion }}</span>
+              <span class="timeline-time">{{ act.fecAccion | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <p class="timeline-detail">{{ act.detalle }}</p>
+            @if (act.nomCanvas) {
+            <span class="timeline-tag">📁 Canvas: {{ act.nomCanvas }}</span>
+            }
+          </div>
+        </div>
+        }
+      </div>
+      } @else {
+      <div class="empty-state">
+        <i class="fa-solid fa-timeline empty-state-icon"></i>
+        <p>No se registran actividades recientes en tu cuenta.</p>
+      </div>
+      }
+    </div>
+
+  </div>
+
+  } @else {
+  <!-- Estado de carga -->
+  <div class="loading">
+    <div class="spinner"></div>
+    <p>Cargando información de progreso...</p>
+  </div>
+  }
+
+</div>

@@ -1,0 +1,168 @@
+<div class="bi-dashboard-container">
+  
+  <!-- Cabecera y Acciones -->
+  <div class="dashboard-header">
+    <div class="header-title">
+      <h1>Dashboard de BI & Analytics</h1>
+      <p>Monitorea la productividad, tareas y avance global de proyectos en tiempo real.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-action btn-pdf" (click)="exportarPDF()" title="Exportar Vista actual a PDF">
+        <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+      </button>
+      <button class="btn btn-sync-bi" (click)="actualizarDatos()" [disabled]="cargando" title="Actualizar datos desde la base de datos">
+        <i class="fa-solid fa-arrows-rotate" [class.fa-spin]="cargando"></i> Sincronizar
+      </button>
+    </div>
+  </div>
+
+  <!-- Barra de Filtros Reactiva -->
+  <div class="filters-panel">
+    <div class="filters-row">
+      <div class="filter-item">
+        <label for="filter-proyecto-bi"><i class="fa-solid fa-folder-tree"></i> Filtrar por Proyecto</label>
+        <select id="filter-proyecto-bi" [(ngModel)]="proyectoFiltro" (change)="aplicarFiltros()" class="form-control-bi">
+          <option value="">Todos los proyectos activos</option>
+          @for (p of proyectosList; track p.codPyto) {
+            <option [value]="p.codPyto">{{ p.nomPyto }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="date-filters-container">
+        <div class="filter-item">
+          <label for="filter-desde-bi"><i class="fa-solid fa-calendar-day"></i> Fecha Desde</label>
+          <input type="date" id="filter-desde-bi" [(ngModel)]="fechaDesde" (change)="aplicarFiltros()" class="form-control-bi" />
+        </div>
+
+        <div class="filter-item">
+          <label for="filter-hasta-bi"><i class="fa-solid fa-calendar-day"></i> Fecha Hasta</label>
+          <input type="date" id="filter-hasta-bi" [(ngModel)]="fechaHasta" (change)="aplicarFiltros()" class="form-control-bi" />
+        </div>
+      </div>
+
+      <div class="filter-actions-bi">
+        <button class="btn btn-reset-bi" (click)="restablecerFiltros()" title="Limpiar todos los filtros">
+          <i class="fa-solid fa-filter-circle-xmark"></i> Limpiar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  @if (cargando) {
+    <!-- Loading State -->
+    <div class="bi-loading">
+      <div class="bi-spinner"></div>
+      <p>Generando analíticas del workspace ejecutivo...</p>
+    </div>
+  } @else {
+    
+    <!-- Fila de Tarjetas KPI de Alto Impacto -->
+    <div class="kpis-grid">
+      <app-kpi-card title="Proyectos Activos" [value]="kpiProyectosActivos" icon="fa-solid fa-briefcase" borderColor="#3b82f6"></app-kpi-card>
+      <app-kpi-card title="Canvas Creados" [value]="kpiCanvasTotales" icon="fa-solid fa-folder-open" borderColor="#9292DB"></app-kpi-card>
+      <app-kpi-card title="Total de Tareas" [value]="kpiTareasTotales" icon="fa-solid fa-list-check" borderColor="#06b6d4"></app-kpi-card>
+      <app-kpi-card title="Progreso Promedio" [value]="kpiProgresoPromedio + '%'" icon="fa-solid fa-chart-line" borderColor="#10b981"></app-kpi-card>
+    </div>
+
+    <!-- Panel de Control Principal de Dos Columnas -->
+    <div class="main-dashboard-grid">
+      
+      <!-- Columna Izquierda: Progreso por Proyecto (Dona) -->
+      <div class="chart-container-card">
+        <div class="card-header-bi">
+          <h3><i class="fa-solid fa-chart-pie"></i> Progreso por Proyecto</h3>
+          <span class="card-subtitle-bi">Distribución de avance porcentual de tareas</span>
+        </div>
+        <div class="chart-wrapper">
+          <canvas #chartProyectosCanvas></canvas>
+        </div>
+      </div>
+
+      <!-- Columna Derecha: Leaderboard de Analistas (Gamificado) -->
+      <div class="leaderboard-card">
+        <div class="card-header-bi">
+          <h3><i class="fa-solid fa-trophy text-amber-500"></i> Analistas Más Productivos</h3>
+          <span class="card-subtitle-bi">Top 5 basado en volumen de tareas completadas</span>
+        </div>
+        
+        <div class="leaderboard-body">
+          @if (topAnalistas.length > 0) {
+            <div class="leaderboard-list">
+              @for (analista of topAnalistas; track analista.codPersona; let idx = $index) {
+                <div class="leaderboard-item">
+                  
+                  <!-- Rank Medal / Number -->
+                  <div class="rank-badge-box">
+                    @if (idx === 0) {
+                      <span class="medal-rank">🥇</span>
+                    } @else if (idx === 1) {
+                      <span class="medal-rank">🥈</span>
+                    } @else if (idx === 2) {
+                      <span class="medal-rank">🥉</span>
+                    } @else {
+                      <span class="number-rank">{{ idx + 1 }}</span>
+                    }
+                  </div>
+
+                  <!-- Profile Avatar -->
+                  <div class="avatar-box">
+                    @if (analista.avatarUrl) {
+                      <img [src]="analista.avatarUrl" class="analista-avatar" alt="Avatar">
+                    } @else {
+                      <div class="analista-avatar-initials" [style.backgroundColor]="analista.colorAvatar">
+                        {{ analista.iniciales }}
+                      </div>
+                    }
+                  </div>
+
+                  <!-- Details -->
+                  <div class="analista-details-box">
+                    <div class="details-top">
+                      <span class="analista-name">{{ analista.nombreCompleto }}</span>
+                      <span class="analista-percentage">{{ analista.tasaEfectividad }}%</span>
+                    </div>
+                    
+                    <!-- Progress Bar -->
+                    <div class="analista-progress-track">
+                      <div class="analista-progress-fill" [style.width.%]="analista.tasaEfectividad"></div>
+                    </div>
+                    
+                    <div class="details-bottom">
+                      <span>{{ analista.tareasCompletadas }} completadas de {{ analista.totalTareas }} totales</span>
+                    </div>
+                  </div>
+
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="empty-leaderboard">
+              <i class="fa-solid fa-users-slash"></i>
+              <p>No hay datos disponibles en el rango seleccionado.</p>
+            </div>
+          }
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Sección de Evolución Temporal (Ancho Completo) -->
+    <div class="evolution-card-full">
+      <div class="card-header-bi flex-between-bi">
+        <div>
+          <h3><i class="fa-solid fa-chart-area"></i> Evolución de Tareas Completadas</h3>
+          <span class="card-subtitle-bi">Línea histórica acumulativa por períodos</span>
+        </div>
+        <div class="evolution-legend">
+          <span class="legend-dot"></span> Tareas Completadas (`vigente = 0`)
+        </div>
+      </div>
+      <div class="chart-wrapper-large">
+        <canvas #chartTiempoCanvas></canvas>
+      </div>
+    </div>
+
+  }
+
+</div>
