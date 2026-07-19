@@ -1,8 +1,13 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, Router } from '@angular/router';
+import { CanvasService } from '../../core/services/canvas.service';
+import { TareaService } from '../../core/services/tarea.service';
+import { HistorialService } from '../../core/services/historial.service';
+import { Canvas } from '../../core/models/canvas.model';
+import { Tarea } from '../../core/models/tarea.model';
+import { Historial } from '../../core/models/historial.model';
 
 @Component({
   selector: 'app-canvas-detalle',
@@ -15,9 +20,9 @@ export class CanvasDetalle implements OnInit {
 
   // Variables de Estado
   canvasId: number = 0;
-  canvasActual: any = null;
+  canvasActual: Canvas | null = null;
   canvasBloqueado: boolean = false;
-  listaCanvas: any[] = [];
+  listaCanvas: Canvas[] = [];
   etapasGlobal: any[] = [];
   
   codPersonaActual: number = 0;
@@ -33,18 +38,18 @@ export class CanvasDetalle implements OnInit {
 
   // Variables para Formularios y UI
   nuevaTarea: any = { nomTarea: '', desTarea: '', codEtapa: '' };
-  tareaSeleccionada: any = null;
-  historial: any[] = [];
+  tareaSeleccionada: Tarea | null = null;
+  historial: Historial[] = [];
   toastMensaje: string = '';
   toastTipo: string = 'info';
   
   // Drag & Drop
-  draggedTask: any = null;
-
-  private API_URL = 'http://localhost:8080/api';
+  draggedTask: Tarea | null = null;
 
   constructor(
-    private http: HttpClient,
+    private canvasService: CanvasService,
+    private tareaService: TareaService,
+    private historialService: HistorialService,
     private route: ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef
@@ -71,9 +76,8 @@ export class CanvasDetalle implements OnInit {
   // CARGA DE DATOS PRINCIPALES
   // ==========================================
   cargarSelectorCanvas() {
-    this.http.get<any>(`${this.API_URL}/sc/canvas`).subscribe(res => {
-      const raw = res.data ? res.data : res;
-      this.listaCanvas = raw.content ? raw.content : (Array.isArray(raw) ? raw : []);
+    this.canvasService.obtenerCanvas().subscribe(res => {
+      this.listaCanvas = res;
       this.cdr.detectChanges();
     });
   }
@@ -86,9 +90,8 @@ export class CanvasDetalle implements OnInit {
   }
 
   cargarCanvasDetalle() {
-    this.http.get<any>(`${this.API_URL}/sc/canvas/${this.canvasId}`).subscribe({
-      next: (res) => {
-        const canvas = res.data || res;
+    this.canvasService.obtenerCanvasPorId(this.canvasId).subscribe({
+      next: (canvas) => {
         this.canvasActual = canvas;
         this.canvasBloqueado = !this.canvasActual.editable;
         
@@ -113,10 +116,10 @@ export class CanvasDetalle implements OnInit {
   // ACCIONES GENERALES DEL CANVAS
   // ==========================================
   toggleBloqueo() {
-    this.http.put<any>(`${this.API_URL}/sc/canvas/${this.canvasId}/toggle`, {}).subscribe({
+    this.canvasService.toggleEditable(this.canvasId).subscribe({
       next: (res) => {
-        this.canvasActual.editable = res.data?.editable;
-        this.canvasBloqueado = !this.canvasActual.editable;
+        this.canvasActual!.editable = res.editable;
+        this.canvasBloqueado = !this.canvasActual!.editable;
         
         const accion = this.canvasBloqueado ? "Bloquear Canvas" : "Desbloquear Canvas";
         const detalle = `El usuario ${this.nombreCompleto} ${this.canvasBloqueado ? 'bloqueó' : 'desbloqueó'} el canvas.`;
@@ -129,7 +132,7 @@ export class CanvasDetalle implements OnInit {
   }
 
   exportarCanvas() {
-    this.http.get(`${this.API_URL}/sc/canvas/${this.canvasId}/exportar`, { responseType: 'blob' }).subscribe({
+    this.canvasService.exportarCanvas(this.canvasId).subscribe({
       next: (blob) => {
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -149,10 +152,10 @@ export class CanvasDetalle implements OnInit {
     const formData = new FormData();
     formData.append("file", file);
 
-    this.http.post<any>(`${this.API_URL}/sc/canvas/importar`, formData).subscribe({
+    this.canvasService.importarCanvas(formData).subscribe({
       next: (res) => {
         alert("Canvas importado correctamente");
-        const nuevoId = res.data?.codCanvas;
+        const nuevoId = res.codCanvas;
         if (nuevoId) this.router.navigate(['/canvas-detalle'], { queryParams: { id: nuevoId } });
       },
       error: () => alert("Error al importar el canvas. Revisa el archivo.")
@@ -179,7 +182,7 @@ export class CanvasDetalle implements OnInit {
       vigente: 1
     };
 
-    this.http.post<any>(`${this.API_URL}/sc/tarea/crear`, payload).subscribe({
+    this.tareaService.crearTarea(payload).subscribe({
       next: () => {
         this.modalTareaAbierto = false;
         this.registrarHistorial("Crear Tarea", `Se creó la tarea "${this.nuevaTarea.nomTarea}".`);
@@ -201,12 +204,13 @@ export class CanvasDetalle implements OnInit {
   }
 
   guardarEdicion() {
+    if (!this.tareaSeleccionada) return;
     const payload = { ...this.tareaSeleccionada, etapa: { codEtapa: this.tareaSeleccionada.codEtapa } };
     
-    this.http.put(`${this.API_URL}/sc/tarea/${this.tareaSeleccionada.codTarea}`, payload).subscribe({
+    this.tareaService.actualizarTarea(this.tareaSeleccionada.codTarea!, payload).subscribe({
       next: () => {
         this.modalEditarAbierto = false;
-        this.registrarHistorial("Editar Tarea", `Se editó la tarea: "${this.tareaSeleccionada.nomTarea}"`);
+        this.registrarHistorial("Editar Tarea", `Se editó la tarea: "${this.tareaSeleccionada!.nomTarea}"`);
         this.cargarCanvasDetalle();
       },
       error: () => alert("Error al actualizar tarea")
@@ -220,10 +224,11 @@ export class CanvasDetalle implements OnInit {
   }
 
   confirmarEliminacion() {
-    this.http.delete(`${this.API_URL}/sc/tarea/${this.tareaSeleccionada.codTarea}`).subscribe({
+    if (!this.tareaSeleccionada) return;
+    this.tareaService.eliminarTarea(this.tareaSeleccionada.codTarea!).subscribe({
       next: () => {
         this.modalEliminarAbierto = false;
-        this.registrarHistorial("Eliminar Tarea", `Se eliminó la tarea "${this.tareaSeleccionada.nomTarea}".`);
+        this.registrarHistorial("Eliminar Tarea", `Se eliminó la tarea "${this.tareaSeleccionada!.nomTarea}".`);
         this.mostrarToast("Tarea eliminada correctamente", "success");
         this.cargarCanvasDetalle();
       },
@@ -235,9 +240,8 @@ export class CanvasDetalle implements OnInit {
     if (this.canvasBloqueado) return this.mostrarToast("El canvas está bloqueado", "error");
     
     const estaCompleta = tarea.vigente === 0;
-    const payload = { completar: !estaCompleta };
 
-    this.http.put(`${this.API_URL}/sc/tarea/${tarea.codTarea}/estado`, payload).subscribe({
+    this.tareaService.cambiarEstadoTarea(tarea.codTarea, !estaCompleta).subscribe({
       next: () => {
         this.registrarHistorial("Cambio de estado", `El usuario ${this.nombreCompleto} ${!estaCompleta ? 'completó' : 'reabrió'} la tarea "${tarea.nomTarea}".`);
         this.mostrarToast(!estaCompleta ? "Tarea completada 🎉" : "Tarea reabierta ↩️", "success");
@@ -266,9 +270,9 @@ export class CanvasDetalle implements OnInit {
     event.preventDefault();
     if (!this.draggedTask || this.draggedTask.codEtapa === codEtapaDestino) return;
 
-    this.http.put(`${this.API_URL}/sc/tarea/${this.draggedTask.codTarea}/mover/${codEtapaDestino}`, {}).subscribe({
+    this.tareaService.moverTarea(this.draggedTask.codTarea!, codEtapaDestino).subscribe({
       next: () => {
-        this.registrarHistorial("Mover Tarea", `La tarea "${this.draggedTask.nomTarea}" fue movida de etapa.`);
+        this.registrarHistorial("Mover Tarea", `La tarea "${this.draggedTask!.nomTarea}" fue movida de etapa.`);
         this.draggedTask = null;
         this.cargarCanvasDetalle();
       },
@@ -280,7 +284,7 @@ export class CanvasDetalle implements OnInit {
   // HISTORIAL Y UTILIDADES
   // ==========================================
   abrirHistorial() {
-    this.http.get<any>(`${this.API_URL}/sc/historial?codCanvas=${this.canvasId}`).subscribe({
+    this.historialService.obtenerHistorial(this.canvasId).subscribe({
       next: (res) => {
         this.historial = res;
         this.modalHistorialAbierto = true;
@@ -297,7 +301,7 @@ export class CanvasDetalle implements OnInit {
       detalle: detalle,
       canvas: { codCanvas: this.canvasId }
     };
-    this.http.post(`${this.API_URL}/sc/historial`, payload).subscribe();
+    this.historialService.registrarHistorial(payload).subscribe();
   }
 
   mostrarToast(mensaje: string, tipo: string = 'info') {

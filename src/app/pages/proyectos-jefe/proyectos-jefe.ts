@@ -1,8 +1,15 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
+import { ProyectoService } from '../../core/services/proyecto.service';
+import { CanvasService } from '../../core/services/canvas.service';
+import { EmpleadoService } from '../../core/services/empleado.service';
+import { Proyecto } from '../../core/models/proyecto.model';
+import { Canvas } from '../../core/models/canvas.model';
+import { Empleado } from '../../core/models/empleado.model';
 
 @Component({
   selector: 'app-proyectos-jefe',
@@ -19,10 +26,10 @@ export class ProyectosJefeComponent implements OnInit {
   cargando: boolean = false;
   
   // Listas de Datos Globales
-  proyectosList: any[] = [];
-  proyectosFiltrados: any[] = [];
-  canvasList: any[] = [];
-  empleadosList: any[] = [];
+  proyectosList: Proyecto[] = [];
+  proyectosFiltrados: Proyecto[] = [];
+  canvasList: Canvas[] = [];
+  empleadosList: Empleado[] = [];
 
   // Filtros
   filtroNombre: string = '';
@@ -40,11 +47,10 @@ export class ProyectosJefeComponent implements OnInit {
   kpiTotalTareas: number = 0;
   kpiProgresoPromedio: number = 0;
 
-  // URL de la API (apuntando a Spring Boot)
-  private API_URL = 'http://localhost:8080/api';
-
   constructor(
-    private http: HttpClient,
+    private proyectoService: ProyectoService,
+    private canvasService: CanvasService,
+    private empleadoService: EmpleadoService,
     private cdr: ChangeDetectorRef,
     private router: Router
   ) {}
@@ -60,37 +66,35 @@ export class ProyectosJefeComponent implements OnInit {
 
   inicializarVista() {
     this.cargando = true;
+    this.cdr.detectChanges();
     
-    // Carga paralela de Proyectos, Canvas y Empleados para calcular estadísticas y asignar encargados
-    this.http.get<any>(`${this.API_URL}/t/proyecto?page=0&size=100`).subscribe({
-      next: (resProyectos) => {
-        const rawP = resProyectos.data ? resProyectos.data : resProyectos;
-        this.proyectosList = rawP.content ? rawP.content : (Array.isArray(rawP) ? rawP : []);
+    // Carga paralela de Proyectos, Canvas y Empleados
+    const proyectos$ = this.proyectoService.obtenerProyectos(0, 100).pipe(catchError(() => of([])));
+    const canvas$ = this.canvasService.obtenerCanvas(0, 200).pipe(catchError(() => of([])));
+    const empleados$ = this.empleadoService.obtenerEmpleadosActivos().pipe(catchError(() => of([])));
 
-        this.http.get<any>(`${this.API_URL}/sc/canvas?page=0&size=200`).subscribe({
-          next: (resCanvas) => {
-            const rawC = resCanvas.data ? resCanvas.data : resCanvas;
-            this.canvasList = rawC.content ? rawC.content : (Array.isArray(rawC) ? rawC : []);
+    forkJoin({
+      proyectos: proyectos$,
+      canvas: canvas$,
+      empleados: empleados$
+    }).subscribe({
+      next: (res) => {
+        this.proyectosList = res.proyectos;
+        this.canvasList = res.canvas;
+        this.empleadosList = res.empleados;
 
-            this.http.get<any>(`${this.API_URL}/t/empleado/activos`).subscribe({
-              next: (resEmpleados) => {
-                const rawE = resEmpleados.data ? resEmpleados.data : resEmpleados;
-                this.empleadosList = rawE.content ? rawE.content : (Array.isArray(rawE) ? rawE : []);
-
-                // Procesar proyectos y calcular estadísticas dinámicas
-                this.procesarMetricasProyectos();
-                this.aplicarFiltros();
-                
-                this.cargando = false;
-                this.cdr.detectChanges();
-              },
-              error: (err) => this.manejarError('empleados', err)
-            });
-          },
-          error: (err) => this.manejarError('canvas', err)
-        });
+        // Procesar proyectos y calcular estadísticas dinámicas
+        this.procesarMetricasProyectos();
+        this.aplicarFiltros();
+        
+        this.cargando = false;
+        this.cdr.detectChanges();
       },
-      error: (err) => this.manejarError('proyectos', err)
+      error: (err) => {
+        console.error('Error al inicializar vista del jefe:', err);
+        this.cargando = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -139,7 +143,9 @@ export class ProyectosJefeComponent implements OnInit {
     
     // Filtrar los canvas de este proyecto y precalcular su progreso individual
     this.canvasProyecto = this.canvasList.filter(c => c.codPyto === proyecto.codPyto).map(c => {
-      const prog = c.totalTareas > 0 ? Math.round((c.tareasCompletadas / c.totalTareas) * 100) : 0;
+      const total = c.totalTareas || 0;
+      const completadas = c.tareasCompletadas || 0;
+      const prog = total > 0 ? Math.round((completadas / total) * 100) : 0;
       return { ...c, progreso: prog };
     });
 
@@ -151,10 +157,8 @@ export class ProyectosJefeComponent implements OnInit {
 
     // Cargar analistas asignados desde el backend (opcional pero aporta valor premium)
     this.analistasProyecto = [];
-    this.http.get<any>(`${this.API_URL}/t/pytopers/proyecto/${proyecto.codPyto}`).subscribe({
-      next: (res) => {
-        const raw = res.data ? res.data : res;
-        const asignaciones = Array.isArray(raw) ? raw : (raw.content ? raw.content : []);
+    this.proyectoService.obtenerAnalistasPorProyecto(proyecto.codPyto).subscribe({
+      next: (asignaciones) => {
         this.analistasProyecto = asignaciones.filter((a: any) => a.vigente === 1);
         this.cdr.detectChanges();
       },
@@ -221,9 +225,10 @@ export class ProyectosJefeComponent implements OnInit {
     return colores[index];
   }
 
-  obtenerClaseProgreso(progreso: number): string {
-    if (progreso < 30) return 'progreso-bajo';
-    if (progreso < 70) return 'progreso-medio';
+  obtenerClaseProgreso(progreso?: number): string {
+    const prog = progreso || 0;
+    if (prog < 30) return 'progreso-bajo';
+    if (prog > 70) return 'progreso-medio';
     return 'progreso-alto';
   }
 

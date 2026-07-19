@@ -1,8 +1,13 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
+import { CanvasService } from '../../core/services/canvas.service';
+import { ProyectoService } from '../../core/services/proyecto.service';
+import { EmpleadoService } from '../../core/services/empleado.service';
+import { Canvas } from '../../core/models/canvas.model';
+import { Proyecto } from '../../core/models/proyecto.model';
+import { Empleado } from '../../core/models/empleado.model';
 
 @Component({
   selector: 'app-inicio',
@@ -21,10 +26,10 @@ export class Inicio implements OnInit {
   cargando: boolean = false;
 
   // Listas de Datos Globales
-  canvasList: any[] = [];
-  canvasFiltrados: any[] = [];
-  proyectosList: any[] = [];
-  empleadosList: any[] = [];
+  canvasList: Canvas[] = [];
+  canvasFiltrados: Canvas[] = [];
+  proyectosList: Proyecto[] = [];
+  empleadosList: Empleado[] = [];
   tiposCanvasList: any[] = [];
 
   // Filtros
@@ -66,10 +71,10 @@ export class Inicio implements OnInit {
   exitoEditarCanvas: string = '';
   canvasEditando: any = { nomCanvas: '', desCanvas: '', codPersona: '' };
 
-  private API_URL = 'http://localhost:8080/api';
-
   constructor(
-    private http: HttpClient,
+    private canvasService: CanvasService,
+    private proyectoService: ProyectoService,
+    private empleadoService: EmpleadoService,
     private cdr: ChangeDetectorRef,
     private router: Router,
     private route: ActivatedRoute
@@ -109,16 +114,10 @@ export class Inicio implements OnInit {
   cargarDatosIniciales() {
     this.cargando = true;
 
-    const endpointCanvas = this.rolUsuario === 'ROLE_ANALISTA' 
-      ? `${this.API_URL}/sc/canvas?page=0&size=100` 
-      : `${this.API_URL}/sc/canvas`;
+    const sizeLimit = this.rolUsuario === 'ROLE_ANALISTA' ? 100 : 500;
 
-    this.http.get<any>(endpointCanvas).subscribe({
-      next: (res) => {
-        // SOLUCIÓN AL BUG: Extraemos la lista sin importar la envoltura de Spring Boot
-        const raw = res.data ? res.data : res;
-        let todosCanvas = raw.content ? raw.content : (Array.isArray(raw) ? raw : []);
-
+    this.canvasService.obtenerCanvas(0, sizeLimit).subscribe({
+      next: (todosCanvas) => {
         if (this.rolUsuario === 'ROLE_ANALISTA') {
           this.canvasList = todosCanvas.filter((c: any) => Number(c.codPersona) === this.codPersonaActual);
         } else {
@@ -138,21 +137,17 @@ export class Inicio implements OnInit {
     });
 
     // Cargar Proyectos
-    this.http.get<any>(`${this.API_URL}/t/proyecto/activos`).subscribe(res => {
-      const raw = res.data ? res.data : res;
-      this.proyectosList = raw.content ? raw.content : (Array.isArray(raw) ? raw : []);
+    this.proyectoService.obtenerProyectosActivos().subscribe(proyectos => {
+      this.proyectosList = proyectos;
     });
 
     // Cargas exclusivas del Jefe
     if (this.rolUsuario === 'ROLE_JEFE') {
-      this.http.get<any>(`${this.API_URL}/t/empleado/activos`).subscribe(res => {
-        const raw = res.data ? res.data : res;
-        this.empleadosList = raw.content ? raw.content : (Array.isArray(raw) ? raw : []);
+      this.empleadoService.obtenerEmpleadosActivos().subscribe(empleados => {
+        this.empleadosList = empleados;
       });
       
-      this.http.get<any>(`${this.API_URL}/sc/tipo-canvas`).subscribe(res => {
-        const raw = res.data ? res.data : res;
-        const tipos = raw.content ? raw.content : (Array.isArray(raw) ? raw : []);
+      this.canvasService.obtenerTiposCanvas().subscribe(tipos => {
         this.tiposCanvasList = tipos.filter((t: any) => t.vigente === 1 && t.tipCanvas !== 'F');
       });
     }
@@ -191,14 +186,14 @@ export class Inicio implements OnInit {
         if (this.filtroProyecto === 'SIN_PROYECTO') {
           coincideProyecto = !c.codPyto;
         } else {
-          coincideProyecto = c.codPyto == this.filtroProyecto;
+          coincideProyecto = String(c.codPyto || '') === this.filtroProyecto;
         }
       }
 
       // Buscador por Nombre de Canvas (para ambos roles)
       let coincideNombre = true;
       if (this.filtroNombreCanvas) {
-        coincideNombre = c.nomCanvas && c.nomCanvas.toLowerCase().includes(this.filtroNombreCanvas.toLowerCase());
+        coincideNombre = !!(c.nomCanvas && c.nomCanvas.toLowerCase().includes(this.filtroNombreCanvas.toLowerCase()));
       }
 
       // Filtro por Estado (Editable/Bloqueado)
@@ -220,9 +215,10 @@ export class Inicio implements OnInit {
     this.aplicarFiltros();
   }
 
-  obtenerNombreProyecto(codPyto: number): string {
+  obtenerNombreProyecto(codPyto?: number): string {
+    if (!codPyto) return 'Sin proyecto';
     const proyecto = this.proyectosList.find(p => p.codPyto === codPyto);
-    return proyecto ? proyecto.nomPyto : 'Sin proyecto';
+    return proyecto ? proyecto.nomPyto : `Proyecto ${codPyto}`;
   }
 
   verCanvas(codCanvas: number) {
@@ -340,7 +336,7 @@ export class Inicio implements OnInit {
     this.cdr.detectChanges();
 
     // 3. Un solo envío, una sola transacción en base de datos
-    this.http.post<any>(`${this.API_URL}/sc/canvas`, payload).subscribe({
+    this.canvasService.crearCanvas(payload).subscribe({
       next: (res) => {
         this.guardandoCanvas = false;
         this.exitoCanvas = "¡Canvas creado correctamente!";
@@ -376,22 +372,6 @@ export class Inicio implements OnInit {
         
         this.cdr.detectChanges();
       }
-    });
-  }
-
-  private guardarEtapasPersonalizadas(codCanvas: number, etapas: any[]) {
-    let completadas = 0;
-    etapas.forEach(etapa => {
-      this.http.post(`${this.API_URL}/sc/etapa`, { ...etapa, canvas: { codCanvas } }).subscribe({
-        next: () => {
-          completadas++;
-          if (completadas === etapas.length) this.cargarDatosIniciales();
-        },
-        error: () => {
-          completadas++;
-          if (completadas === etapas.length) this.cargarDatosIniciales();
-        }
-      });
     });
   }
 
@@ -432,7 +412,7 @@ export class Inicio implements OnInit {
       codPyto: this.canvasEditando.codPyto ? Number(this.canvasEditando.codPyto) : null
     };
 
-    this.http.put<any>(`${this.API_URL}/sc/canvas/${this.canvasEditando.codCanvas}`, payload).subscribe({
+    this.canvasService.actualizarCanvas(this.canvasEditando.codCanvas, payload).subscribe({
       next: (res) => {
         this.guardandoEdicion = false;
         this.exitoEditarCanvas = "¡Canvas actualizado correctamente!";
@@ -453,10 +433,9 @@ export class Inicio implements OnInit {
   }
 
   toggleBloqueoCanvas(canvas: any) {
-    this.http.put<any>(`${this.API_URL}/sc/canvas/${canvas.codCanvas}/toggle`, {}).subscribe({
+    this.canvasService.toggleEditable(canvas.codCanvas).subscribe({
       next: (res) => {
-        const raw = res.data ? res.data : res;
-        canvas.editable = raw.editable;
+        canvas.editable = res.editable;
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -468,7 +447,7 @@ export class Inicio implements OnInit {
 
   eliminarCanvas(codCanvas: number) {
     if (confirm("¿Está seguro de que desea eliminar este canvas de forma permanente? Esta acción no se puede deshacer y borrará todas sus etapas y tareas.")) {
-      this.http.delete<any>(`${this.API_URL}/sc/canvas/${codCanvas}`).subscribe({
+      this.canvasService.eliminarCanvas(codCanvas).subscribe({
         next: () => {
           alert("Canvas eliminado con éxito");
           this.cargarDatosIniciales();

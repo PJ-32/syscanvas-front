@@ -1,11 +1,18 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import { Router, RouterModule } from '@angular/router';
 import { Chart, registerables } from 'chart.js';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card';
+import { CanvasService } from '../../core/services/canvas.service';
+import { TareaService } from '../../core/services/tarea.service';
+import { ProyectoService } from '../../core/services/proyecto.service';
+import { HistorialService } from '../../core/services/historial.service';
+import { Canvas } from '../../core/models/canvas.model';
+import { Tarea } from '../../core/models/tarea.model';
+import { Proyecto } from '../../core/models/proyecto.model';
+import { Historial } from '../../core/models/historial.model';
 
 Chart.register(...registerables);
 
@@ -31,10 +38,10 @@ export class MiProgresoComponent implements OnInit, OnDestroy, AfterViewInit {
   nombreUsuario: string = 'Usuario';
 
   // Listas de Datos Procesadas
-  canvasList: any[] = [];
-  tareasList: any[] = [];
-  proyectosList: any[] = [];
-  actividadesRecientes: any[] = [];
+  canvasList: Canvas[] = [];
+  tareasList: Tarea[] = [];
+  proyectosList: Proyecto[] = [];
+  actividadesRecientes: Historial[] = [];
 
   // KPIs
   kpiTareasCompletadas: number = 0;
@@ -46,11 +53,11 @@ export class MiProgresoComponent implements OnInit, OnDestroy, AfterViewInit {
   private chartProductividad: Chart | null = null;
   private chartDistribucion: Chart | null = null;
 
-  // URL Base de la API
-  private API_URL = 'http://localhost:8080/api';
-
   constructor(
-    private http: HttpClient,
+    private canvasService: CanvasService,
+    private tareaService: TareaService,
+    private proyectoService: ProyectoService,
+    private historialService: HistorialService,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
@@ -86,10 +93,10 @@ export class MiProgresoComponent implements OnInit, OnDestroy, AfterViewInit {
     this.datosCargados = false;
     this.cdr.detectChanges();
 
-    const canvas$ = this.http.get<any>(`${this.API_URL}/sc/canvas?page=0&size=500`).pipe(catchError(() => of([])));
-    const tareas$ = this.http.get<any>(`${this.API_URL}/sc/tarea/persona/${this.codPersonaActual}?page=0&size=2000`).pipe(catchError(() => of({ content: [] })));
-    const proyectos$ = this.http.get<any>(`${this.API_URL}/t/proyecto?page=0&size=500`).pipe(catchError(() => of([])));
-    const historial$ = this.http.get<any>(`${this.API_URL}/sc/historial`).pipe(catchError(() => of([])));
+    const canvas$ = this.canvasService.obtenerCanvas(0, 500).pipe(catchError(() => of([])));
+    const tareas$ = this.tareaService.obtenerTareasPorPersona(this.codPersonaActual, 0, 2000).pipe(catchError(() => of([])));
+    const proyectos$ = this.proyectoService.obtenerProyectos(0, 500).pipe(catchError(() => of([])));
+    const historial$ = this.historialService.obtenerHistorial().pipe(catchError(() => of([])));
 
     forkJoin({
       canvas: canvas$,
@@ -99,18 +106,16 @@ export class MiProgresoComponent implements OnInit, OnDestroy, AfterViewInit {
     }).subscribe({
       next: (res) => {
         // 1. Filtrar Canvas pertenecientes al analista logueado
-        const todosCanvas = this.extractContent(res.canvas);
-        this.canvasList = todosCanvas.filter((c: any) => Number(c.codPersona) === this.codPersonaActual);
+        this.canvasList = res.canvas.filter((c: any) => Number(c.codPersona) === this.codPersonaActual);
 
         // 2. Extraer Tareas
-        this.tareasList = this.extractContent(res.tareas);
+        this.tareasList = res.tareas;
 
         // 3. Extraer Proyectos
-        this.proyectosList = this.extractContent(res.proyectos);
+        this.proyectosList = res.proyectos;
 
         // 4. Extraer Historial y filtrar por analista
-        const todosHistorial = Array.isArray(res.historial) ? res.historial : (res.historial?.data || []);
-        this.actividadesRecientes = todosHistorial
+        this.actividadesRecientes = res.historial
           .filter((h: any) => Number(h.codPersona) === this.codPersonaActual)
           .sort((a: any, b: any) => new Date(b.fecAccion).getTime() - new Date(a.fecAccion).getTime())
           .slice(0, 8); // 8 más recientes para la timeline
@@ -141,12 +146,12 @@ export class MiProgresoComponent implements OnInit, OnDestroy, AfterViewInit {
     }
 
     const canvasDetalles$ = this.canvasList.map(c => 
-      this.http.get<any>(`${this.API_URL}/sc/canvas/${c.codCanvas}`).pipe(catchError(() => of(c)))
+      this.canvasService.obtenerCanvasPorId(c.codCanvas).pipe(catchError(() => of(c)))
     );
 
     forkJoin(canvasDetalles$).subscribe({
       next: (detalles) => {
-        const canvasConEtapas = detalles.map(d => d.data || d);
+        const canvasConEtapas = detalles;
         
         // Activar vista
         this.datosCargados = true;
@@ -400,13 +405,7 @@ export class MiProgresoComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  private extractContent(res: any): any[] {
-    const raw = res && res.data ? res.data : res;
-    if (!raw) return [];
-    return raw.content ? raw.content : (Array.isArray(raw) ? raw : []);
-  }
-
-  obtenerNombreProyecto(codPyto: number): string {
+  obtenerNombreProyecto(codPyto?: number): string {
     if (!codPyto) return 'Sin Proyecto';
     const proj = this.proyectosList.find(p => p.codPyto === codPyto);
     return proj ? proj.nomPyto : `Proyecto ${codPyto}`;

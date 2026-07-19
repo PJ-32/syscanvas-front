@@ -1,23 +1,22 @@
 import { Component, OnInit, OnDestroy, AfterViewInit, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card';
+import { ProyectoService } from '../../core/services/proyecto.service';
+import { CanvasService } from '../../core/services/canvas.service';
+import { TareaService } from '../../core/services/tarea.service';
+import { EmpleadoService } from '../../core/services/empleado.service';
+import { Proyecto } from '../../core/models/proyecto.model';
+import { Canvas } from '../../core/models/canvas.model';
+import { Tarea } from '../../core/models/tarea.model';
+import { Empleado } from '../../core/models/empleado.model';
+import { LeaderboardAnalista } from '../../core/models/analista.model';
 
 // Registrar todos los módulos necesarios de Chart.js
 Chart.register(...registerables);
-
-interface LeaderboardAnalista {
-  codPersona: number;
-  nombreCompleto: string;
-  avatarUrl: string;
-  iniciales: string;
-  colorAvatar: string;
-  totalTareas: number;
-  tareasCompletadas: number;
-  tasaEfectividad: number;
-}
 
 @Component({
   selector: 'app-reportes',
@@ -38,10 +37,10 @@ export class ReportesComponent implements OnInit, OnDestroy, AfterViewInit {
   cargando: boolean = false;
 
   // Listas de Datos Globales
-  proyectosList: any[] = [];
-  canvasList: any[] = [];
-  tareasList: any[] = [];
-  empleadosList: any[] = [];
+  proyectosList: Proyecto[] = [];
+  canvasList: Canvas[] = [];
+  tareasList: Tarea[] = [];
+  empleadosList: Empleado[] = [];
 
   // Filtros
   proyectoFiltro: string = '';
@@ -61,11 +60,13 @@ export class ReportesComponent implements OnInit, OnDestroy, AfterViewInit {
   private chartProyectos: Chart | null = null;
   private chartTiempo: Chart | null = null;
 
-  // URL base
   private API_URL = 'http://localhost:8080/api';
 
   constructor(
-    private http: HttpClient,
+    private proyectoService: ProyectoService,
+    private canvasService: CanvasService,
+    private tareaService: TareaService,
+    private empleadoService: EmpleadoService,
     private cdr: ChangeDetectorRef
   ) {}
 
@@ -93,41 +94,32 @@ export class ReportesComponent implements OnInit, OnDestroy, AfterViewInit {
     this.cargando = true;
     this.cdr.detectChanges();
 
-    // Carga paralela de Proyectos, Canvas, Tareas y Empleados
-    this.http.get<any>(`${this.API_URL}/t/proyecto?page=0&size=200`).subscribe({
-      next: (resP) => {
-        const rawP = resP.data ? resP.data : resP;
-        this.proyectosList = rawP.content ? rawP.content : (Array.isArray(rawP) ? rawP : []);
+    const proyectos$ = this.proyectoService.obtenerProyectos(0, 200).pipe(catchError(() => of([])));
+    const canvas$ = this.canvasService.obtenerCanvas(0, 500).pipe(catchError(() => of([])));
+    const tareas$ = this.tareaService.obtenerTareas(0, 2000).pipe(catchError(() => of([])));
+    const empleados$ = this.empleadoService.obtenerEmpleadosActivos().pipe(catchError(() => of([])));
 
-        this.http.get<any>(`${this.API_URL}/sc/canvas?page=0&size=500`).subscribe({
-          next: (resC) => {
-            const rawC = resC.data ? resC.data : resC;
-            this.canvasList = rawC.content ? rawC.content : (Array.isArray(rawC) ? rawC : []);
+    forkJoin({
+      proyectos: proyectos$,
+      canvas: canvas$,
+      tareas: tareas$,
+      empleados: empleados$
+    }).subscribe({
+      next: (res) => {
+        this.proyectosList = res.proyectos;
+        this.canvasList = res.canvas;
+        this.tareasList = res.tareas;
+        this.empleadosList = res.empleados;
 
-            this.http.get<any>(`${this.API_URL}/sc/tarea?page=0&size=2000`).subscribe({
-              next: (resT) => {
-                const rawT = resT.data ? resT.data : resT;
-                this.tareasList = rawT.content ? rawT.content : (Array.isArray(rawT) ? rawT : []);
-
-                this.http.get<any>(`${this.API_URL}/t/empleado/activos`).subscribe({
-                  next: (resE) => {
-                    const rawE = resE.data ? resE.data : resE;
-                    this.empleadosList = rawE.content ? rawE.content : (Array.isArray(rawE) ? rawE : []);
-
-                    this.cargando = false;
-                    this.actualizarGraficosyKPIs();
-                    this.cdr.detectChanges();
-                  },
-                  error: (err) => this.manejarError('empleados', err)
-                });
-              },
-              error: (err) => this.manejarError('tareas', err)
-            });
-          },
-          error: (err) => this.manejarError('canvas', err)
-        });
+        this.cargando = false;
+        this.actualizarGraficosyKPIs();
+        this.cdr.detectChanges();
       },
-      error: (err) => this.manejarError('proyectos', err)
+      error: (err) => {
+        console.error('Error al cargar datos en Reportes:', err);
+        this.cargando = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -154,12 +146,12 @@ export class ReportesComponent implements OnInit, OnDestroy, AfterViewInit {
     if (this.fechaDesde) {
       const inicio = new Date(this.fechaDesde);
       inicio.setHours(0, 0, 0, 0);
-      tareasFiltradas = tareasFiltradas.filter(t => new Date(t.fecCreacion) >= inicio);
+      tareasFiltradas = tareasFiltradas.filter(t => new Date(t.fecCreacion || '') >= inicio);
     }
     if (this.fechaHasta) {
       const fin = new Date(this.fechaHasta);
       fin.setHours(23, 59, 59, 999);
-      tareasFiltradas = tareasFiltradas.filter(t => new Date(t.fecCreacion) <= fin);
+      tareasFiltradas = tareasFiltradas.filter(t => new Date(t.fecCreacion || '') <= fin);
     }
 
     // 3. Calcular KPIs
