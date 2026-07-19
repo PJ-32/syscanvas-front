@@ -5,13 +5,14 @@ import { Router, RouterModule } from '@angular/router';
 import { Chart, registerables } from 'chart.js';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card';
 
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-mi-progreso',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, KpiCardComponent],
   templateUrl: './mi-progreso.html',
   styleUrls: ['./mi-progreso.css']
 })

@@ -59,63 +59,10 @@
     
     <!-- Fila de Tarjetas KPI de Alto Impacto -->
     <div class="kpis-grid">
-      
-      <!-- KPI 1 -->
-      <div class="kpi-card kpi-blue">
-        <div class="kpi-body">
-          <div class="kpi-info">
-            <span class="kpi-num">{{ kpiProyectosActivos }}</span>
-            <span class="kpi-title">Proyectos Activos</span>
-          </div>
-          <div class="kpi-icon-circle">
-            <i class="fa-solid fa-briefcase"></i>
-          </div>
-        </div>
-        <div class="kpi-footer-bar"></div>
-      </div>
-
-      <!-- KPI 2 -->
-      <div class="kpi-card kpi-purple">
-        <div class="kpi-body">
-          <div class="kpi-info">
-            <span class="kpi-num">{{ kpiCanvasTotales }}</span>
-            <span class="kpi-title">Canvas Creados</span>
-          </div>
-          <div class="kpi-icon-circle">
-            <i class="fa-solid fa-folder-open"></i>
-          </div>
-        </div>
-        <div class="kpi-footer-bar"></div>
-      </div>
-
-      <!-- KPI 3 -->
-      <div class="kpi-card kpi-cyan">
-        <div class="kpi-body">
-          <div class="kpi-info">
-            <span class="kpi-num">{{ kpiTareasTotales }}</span>
-            <span class="kpi-title">Total de Tareas</span>
-          </div>
-          <div class="kpi-icon-circle">
-            <i class="fa-solid fa-list-check"></i>
-          </div>
-        </div>
-        <div class="kpi-footer-bar"></div>
-      </div>
-
-      <!-- KPI 4 -->
-      <div class="kpi-card kpi-gradient-green">
-        <div class="kpi-body">
-          <div class="kpi-info">
-            <span class="kpi-num">{{ kpiProgresoPromedio }}%</span>
-            <span class="kpi-title">Progreso Promedio</span>
-          </div>
-          <div class="kpi-icon-circle">
-            <i class="fa-solid fa-chart-line"></i>
-          </div>
-        </div>
-        <div class="kpi-footer-bar"></div>
-      </div>
-
+      <app-kpi-card title="Proyectos Activos" [value]="kpiProyectosActivos" icon="fa-solid fa-briefcase" borderColor="#3b82f6"></app-kpi-card>
+      <app-kpi-card title="Canvas Creados" [value]="kpiCanvasTotales" icon="fa-solid fa-folder-open" borderColor="#9292DB"></app-kpi-card>
+      <app-kpi-card title="Total de Tareas" [value]="kpiTareasTotales" icon="fa-solid fa-list-check" borderColor="#06b6d4"></app-kpi-card>
+      <app-kpi-card title="Progreso Promedio" [value]="kpiProgresoPromedio + '%'" icon="fa-solid fa-chart-line" borderColor="#10b981"></app-kpi-card>
     </div>
 
     <!-- Panel de Control Principal de Dos Columnas -->

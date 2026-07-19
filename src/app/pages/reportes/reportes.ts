@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Chart, registerables } from 'chart.js';
+import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card';
 
 // Registrar todos los módulos necesarios de Chart.js
 Chart.register(...registerables);
@@ -21,7 +22,7 @@ interface LeaderboardAnalista {
 @Component({
   selector: 'app-reportes',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, KpiCardComponent],
   templateUrl: './reportes.html',
   styleUrls: ['./reportes.css']
 })

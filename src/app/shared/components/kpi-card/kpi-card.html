@@ -1,0 +1,12 @@
+<div class="kpi-card">
+  <div class="kpi-body">
+    <div class="kpi-info">
+      <span class="kpi-num">{{ value }}</span>
+      <span class="kpi-title">{{ title }}</span>
+    </div>
+    <div class="kpi-icon-circle" [style.color]="borderColor" [style.backgroundColor]="getRgbaColor(borderColor)">
+      <i [class]="icon"></i>
+    </div>
+  </div>
+  <div class="kpi-footer-bar" [style.background]="borderColor"></div>
+</div>

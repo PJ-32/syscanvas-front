@@ -17,63 +17,10 @@
 
     <!-- TARJETAS KPI (Fila Superior) -->
     <div class="kpis-grid">
-      
-      <!-- KPI 1: Tareas Completadas -->
-      <div class="kpi-card kpi-blue">
-        <div class="kpi-body">
-          <div class="kpi-info">
-            <span class="kpi-num">{{ kpiTareasCompletadas }}</span>
-            <span class="kpi-title">Tareas Completadas</span>
-          </div>
-          <div class="kpi-icon-circle">
-            <i class="fa-solid fa-circle-check"></i>
-          </div>
-        </div>
-        <div class="kpi-footer-bar"></div>
-      </div>
-
-      <!-- KPI 2: Tareas Pendientes -->
-      <div class="kpi-card kpi-purple">
-        <div class="kpi-body">
-          <div class="kpi-info">
-            <span class="kpi-num">{{ kpiTareasPendientes }}</span>
-            <span class="kpi-title">Tareas Pendientes</span>
-          </div>
-          <div class="kpi-icon-circle">
-            <i class="fa-solid fa-clock"></i>
-          </div>
-        </div>
-        <div class="kpi-footer-bar"></div>
-      </div>
-
-      <!-- KPI 3: Progreso Promedio -->
-      <div class="kpi-card kpi-cyan">
-        <div class="kpi-body">
-          <div class="kpi-info">
-            <span class="kpi-num">{{ kpiProgresoPromedio }}%</span>
-            <span class="kpi-title">Progreso Promedio</span>
-          </div>
-          <div class="kpi-icon-circle">
-            <i class="fa-solid fa-chart-line"></i>
-          </div>
-        </div>
-        <div class="kpi-footer-bar"></div>
-      </div>
-
-      <!-- KPI 4: Canvas Activos -->
-      <div class="kpi-card kpi-green">
-        <div class="kpi-body">
-          <div class="kpi-info">
-            <span class="kpi-num">{{ kpiCanvasActivos }}</span>
-            <span class="kpi-title">Canvas Activos</span>
-          </div>
-          <div class="kpi-icon-circle">
-            <i class="fa-solid fa-folder-open"></i>
-          </div>
-        </div>
-        <div class="kpi-footer-bar"></div>
-      </div>
-
+      <app-kpi-card title="Tareas Completadas" [value]="kpiTareasCompletadas" icon="fa-solid fa-circle-check" borderColor="#3b82f6"></app-kpi-card>
+      <app-kpi-card title="Tareas Pendientes" [value]="kpiTareasPendientes" icon="fa-solid fa-clock" borderColor="#9292DB"></app-kpi-card>
+      <app-kpi-card title="Progreso Promedio" [value]="kpiProgresoPromedio + '%'" icon="fa-solid fa-chart-line" borderColor="#06b6d4"></app-kpi-card>
+      <app-kpi-card title="Canvas Activos" [value]="kpiCanvasActivos" icon="fa-solid fa-folder-open" borderColor="#10b981"></app-kpi-card>
     </div>
 
     <!-- PANEL DE GRÁFICOS (Fila Central) -->
