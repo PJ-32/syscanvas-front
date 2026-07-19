@@ -12,6 +12,7 @@ Debes instalar las siguientes extensiones en tu entorno de desarrollo:
 * Extension Pack for Java
 * Lombok Annotations Support for VS Code
 * Spring Boot Extension Pack
+* Node.js
 
 ---
 
