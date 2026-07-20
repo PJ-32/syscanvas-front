@@ -4,6 +4,7 @@
 * Oracle 21c
 * Java 21 o 22
 * Maven
+* Node.js
 * Visual Studio Code
 
 ## Extensiones de VS Code
@@ -12,6 +13,7 @@ Debes instalar las siguientes extensiones en tu entorno de desarrollo:
 * Extension Pack for Java
 * Lombok Annotations Support for VS Code
 * Spring Boot Extension Pack
+* Angular Language Service
 
 ---
 
