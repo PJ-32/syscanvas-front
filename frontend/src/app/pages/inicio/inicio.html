@@ -189,6 +189,10 @@
                         [title]="obtenerNombreProyecto(canvas.codPyto)">
                         📁 {{ obtenerNombreProyecto(canvas.codPyto) }}
                     </div>
+                    <div class="canvas-card-meta text-xs text-gray-500 mt-1 canvas-project-tag"
+                        [title]="obtenerNombreAnalista(canvas)">
+                        👤 Analista: {{ obtenerNombreAnalista(canvas) }}
+                    </div>
                 </div>
                 <span class="badge" [ngClass]="canvas.editable ? 'badge-success-pastel' : 'badge-error-pastel'">
                     {{ canvas.editable ? '✏️ Editable' : '🔒 Bloqueado' }}

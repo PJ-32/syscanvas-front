@@ -141,12 +141,13 @@ export class Inicio implements OnInit {
       this.proyectosList = proyectos;
     });
 
+    // Cargar Empleados para todos los roles
+    this.empleadoService.obtenerEmpleadosActivos().subscribe(empleados => {
+      this.empleadosList = empleados;
+    });
+
     // Cargas exclusivas del Jefe
     if (this.rolUsuario === 'ROLE_JEFE') {
-      this.empleadoService.obtenerEmpleadosActivos().subscribe(empleados => {
-        this.empleadosList = empleados;
-      });
-
       this.canvasService.obtenerTiposCanvas().subscribe(tipos => {
         this.tiposCanvasList = tipos.filter((t: any) => t.vigente === 1 && t.tipCanvas !== 'F');
       });
@@ -219,6 +220,25 @@ export class Inicio implements OnInit {
     if (!codPyto) return 'Sin proyecto';
     const proyecto = this.proyectosList.find(p => p.codPyto === codPyto);
     return proyecto ? proyecto.nomPyto : `Proyecto ${codPyto}`;
+  }
+
+  obtenerNombreAnalista(canvas: any): string {
+    if (canvas.empleado) {
+      return `${canvas.empleado.nombre} ${canvas.empleado.apellido}`;
+    }
+    if (canvas.empleadoInfo) {
+      const empInfo = canvas.empleadoInfo;
+      if (empInfo.nombre && empInfo.apellido) {
+        return `${empInfo.nombre} ${empInfo.apellido}`;
+      }
+    }
+    if (canvas.codPersona && this.empleadosList && this.empleadosList.length > 0) {
+      const emp = this.empleadosList.find(e => Number(e.codPersona) === Number(canvas.codPersona));
+      if (emp) {
+        return `${emp.nombre} ${emp.apellido}`;
+      }
+    }
+    return 'Sin asignar';
   }
 
   verCanvas(codCanvas: number) {
